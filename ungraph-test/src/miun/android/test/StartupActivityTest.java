@@ -68,7 +68,8 @@ public class StartupActivityTest extends
 	public void testGetIntentFromOtherApplication() {
 		Intent intent = new Intent();
 		Uri data = Uri.parse("Ganz toller Uri String");
-		intent.setData(data);
+		//mSolo.
+		//intent.setData(data);
 		launchActivityWithIntent("miun.android", StartupActivity.class, intent);
 		mSolo.goBack();
 	}

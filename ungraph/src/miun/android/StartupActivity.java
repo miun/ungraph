@@ -4,20 +4,47 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.FrameLayout;
 
 public class StartupActivity extends Activity {
 	
 	public static final int PICK_IMAGE = 1;
+	
+	private Camera mCamera;
+	private CameraPreview mPreview;
+	
+	//Return available camera or null
+	private Camera getFirstCam() {
+		try {
+			return Camera.open();
+		}
+		catch (Exception e) {
+			Log.e("ungraph.cam","Cannot open camera");
+			return null;
+		}
+	}
+	
+	
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        mCamera = getFirstCam();
+        
+        if(mCamera != null) {
+        	mPreview = new CameraPreview(this,mCamera);
+        	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
+        	preview.addView(mPreview);
+        }
     }
     
     /*
@@ -79,6 +106,7 @@ public class StartupActivity extends Activity {
      * If the file is an image the intend to calculate the image must be started 
      */
     public void processSelectedFile(Uri source) {
+    	
     	AlertDialog alertDialog = new AlertDialog.Builder(this).create();
 		alertDialog.setTitle("Result Cancelled...");
 		alertDialog.setMessage("Are you sure?");
