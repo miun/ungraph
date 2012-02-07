@@ -4,5 +4,6 @@
     <string name="hello">Hello World, UngraphActivity!</string>
     <string name="app_name">Ungraph</string>
     <string name="help">This is the help page - here you can find information how to use this app.....</string>
+    <string name="select_picture">Select picture</string>
 
 </resources>

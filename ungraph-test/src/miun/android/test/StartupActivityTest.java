@@ -3,6 +3,8 @@ package miun.android.test;
 import miun.android.HelpActivity;
 import miun.android.StartupActivity;
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.test.ActivityInstrumentationTestCase2;
 import com.jayway.android.robotium.solo.Solo;
 
@@ -38,26 +40,24 @@ public class StartupActivityTest extends
 		assertNotNull(mActivity);
 		assertNotNull(mSolo);
 	}
-	
+	/*
 	public void testOptionsMenuInvisibleOnStartup() {
 		fail("No Idea to check if the whole Menu is invisible");
-	}
+	}*/
 	
 	public void testOptionsMenuEntries() {
 		mSolo.sendKey(Solo.MENU);
 		assertTrue("Gallery entry not found",mSolo.searchText("Gallery"));
 		assertTrue("Help Entry not found",mSolo.searchText("Help"));
-		assertTrue("Exit Entry not found",mSolo.searchText("Exit"));
 	}
-	/*
+	
 	public void testGalleryButtonFunction() {
 		mSolo.sendKey(Solo.MENU);
 		mSolo.clickOnText("Gallery");
-		fail(mSolo.getCurrentActivity().toString());
-		mSolo.
-		//mSolo.assertCurrentActivity("HelpActivity not Called", HelpActivity.class);
+		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.select_picture)));
+		mSolo.goBack();
 	}
-	*/
+	
 	public void testHelpButtonFunction() {
 		mSolo.sendKey(Solo.MENU);
 		mSolo.clickOnText("Help");
@@ -65,10 +65,12 @@ public class StartupActivityTest extends
 		mSolo.goBack();
 	}
 	
-	public void testExitButtonFunction() {
-		mSolo.sendKey(Solo.MENU);
-		mSolo.clickOnText("Exit");
-		assertTrue(mSolo.getAllOpenedActivities().isEmpty());
+	public void testGetIntentFromOtherApplication() {
+		Intent intent = new Intent();
+		Uri data = Uri.parse("Ganz toller Uri String");
+		intent.setData(data);
+		launchActivityWithIntent("miun.android", StartupActivity.class, intent);
+		mSolo.goBack();
 	}
 	
 }

@@ -4,13 +4,14 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
 public class StartupActivity extends Activity {
 	
-	private static final int PICK_IMAGE = 1;
+	public static final int PICK_IMAGE = 1;
 	
     /** Called when the activity is first created. */
     @Override
@@ -30,9 +31,7 @@ public class StartupActivity extends Activity {
     	//In this case the user selected an image from his harddrive
 		case StartupActivity.PICK_IMAGE:
 			if (resultCode == Activity.RESULT_OK) {
-				
-			}else {
-				
+				this.processSelectedFile(data.getData());
 			}
 			break;
 		}
@@ -63,7 +62,8 @@ public class StartupActivity extends Activity {
         	Intent intent = new Intent();
         	intent.setType("image/*");
         	intent.setAction(Intent.ACTION_GET_CONTENT);
-        	startActivityForResult(Intent.createChooser(intent, "Select Picture"), StartupActivity.PICK_IMAGE);
+        	String selectImage = getResources().getString(R.string.select_picture);
+        	startActivityForResult(Intent.createChooser(intent, selectImage), StartupActivity.PICK_IMAGE);
         	return true;
         case R.id.help:
             startActivity(new Intent(this, HelpActivity.class));
@@ -72,7 +72,24 @@ public class StartupActivity extends Activity {
         return false;
     }
     
-    //@Override
+    /*
+     * This method should process the file returned by the selector. 
+     * If the file is not an image file a Dialog should be shown to inform the user that 
+     * it was unsuccessful.. 
+     * If the file is an image the intend to calculate the image must be started 
+     */
+    public void processSelectedFile(Uri source) {
+    	AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+		alertDialog.setTitle("Result Cancelled...");
+		alertDialog.setMessage("Are you sure?");
+		alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+		   public void onClick(DialogInterface dialog, int which) {
+		      // here you can add functions
+		   }
+		});
+		//alertDialog.setIcon(R.drawable.icon);
+		alertDialog.show();
+    }
     
     
     
