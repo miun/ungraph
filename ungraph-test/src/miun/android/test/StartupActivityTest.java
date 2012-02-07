@@ -1,5 +1,6 @@
 package miun.android.test;
 
+import miun.android.HelpActivity;
 import miun.android.StartupActivity;
 import android.app.Activity;
 import android.test.ActivityInstrumentationTestCase2;
@@ -47,6 +48,27 @@ public class StartupActivityTest extends
 		assertTrue("Gallery entry not found",mSolo.searchText("Gallery"));
 		assertTrue("Help Entry not found",mSolo.searchText("Help"));
 		assertTrue("Exit Entry not found",mSolo.searchText("Exit"));
+	}
+	/*
+	public void testGalleryButtonFunction() {
+		mSolo.sendKey(Solo.MENU);
+		mSolo.clickOnText("Gallery");
+		fail(mSolo.getCurrentActivity().toString());
+		mSolo.
+		//mSolo.assertCurrentActivity("HelpActivity not Called", HelpActivity.class);
+	}
+	*/
+	public void testHelpButtonFunction() {
+		mSolo.sendKey(Solo.MENU);
+		mSolo.clickOnText("Help");
+		mSolo.assertCurrentActivity("HelpActivity not Called", HelpActivity.class);
+		mSolo.goBack();
+	}
+	
+	public void testExitButtonFunction() {
+		mSolo.sendKey(Solo.MENU);
+		mSolo.clickOnText("Exit");
+		assertTrue(mSolo.getAllOpenedActivities().isEmpty());
 	}
 	
 }
