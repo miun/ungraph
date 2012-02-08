@@ -49,20 +49,17 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		bmp = Bitmap.createBitmap(500,500,Bitmap.Config.ARGB_8888);
 	}
 
-	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		mCamera.addCallbackBuffer(mBuffer);
 		mCamera.setPreviewCallbackWithBuffer(this);
 		mCamera.startPreview();
 	}
 
-	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 		//Check some stuff
 		if(mHolder.getSurface() == null) return;
