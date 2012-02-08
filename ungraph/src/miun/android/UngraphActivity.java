@@ -1,7 +1,7 @@
 package miun.android;
 
-import miun.android.R.id;
 import android.app.Activity;
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,7 +25,7 @@ public class UngraphActivity extends Activity {
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    	super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
         //Camera tests
@@ -33,7 +33,7 @@ public class UngraphActivity extends Activity {
         
         if(mCamera != null) {
         	mPreview = new CameraPreview(this,mCamera);
-        	FrameLayout preview = (FrameLayout) findViewById(id.camera_preview);
+        	FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         	preview.addView(mPreview);
         }
     }

@@ -1,34 +1,59 @@
 package miun.android;
 
-import java.io.IOException;
-
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.Paint;
 import android.hardware.Camera;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback,Camera.PreviewCallback {
+/*	@Override
+	public void draw(Canvas canvas) {
+		super.draw(canvas);
+		
+		Paint paint = new Paint();
+		paint.setColor(10);
+		
+		canvas.drawLine(0, 0, 100,100,paint);
+		invalidate();
+	}*/
+
 	private Camera mCamera;
 	private SurfaceHolder mHolder;
+	private byte[] mBuffer;
+	private Bitmap bmp;
 	
 	public CameraPreview(Context context, Camera camera) {
-		super(context);
-		mCamera = camera;
-		
-		mHolder = getHolder();
+        super(context);
+
+        Camera.Size size;
+        int bpp;
+
+        //Init buffer and callback
+        mCamera = camera;
+    	size = mCamera.getParameters().getPreviewSize();
+        bpp = ImageFormat.getBitsPerPixel(mCamera.getParameters().getPreviewFormat());
+        mBuffer = new byte[size.width * size.height * bpp / 8];
+
+		//Init holder
+    	mHolder = getHolder();
 		mHolder.addCallback(this);
-		mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		//mHolder.setType(SurfaceHolder.);
+		
+		//Create bitmap for preview
+		bmp = Bitmap.createBitmap(500,500,Bitmap.Config.ARGB_8888);
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		try {
-			mCamera.setPreviewDisplay(holder);
-			mCamera.startPreview();
-		} catch (IOException e) {
-			Log.d("ungraph-cam", "Error setting camera preview");
-		}
+		mCamera.addCallbackBuffer(mBuffer);
+		mCamera.setPreviewCallbackWithBuffer(this);
+		mCamera.startPreview();
 	}
 
 	@Override
@@ -44,7 +69,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		try { mCamera.stopPreview(); } catch (Exception e) {}
 		
 		try {
-			mCamera.setPreviewDisplay(mHolder);
+			//mCamera.setPreviewDisplay(mHolder);
 			mCamera.startPreview();
 		}
 		catch (Exception e) {
@@ -52,4 +77,24 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		}
 	}
 
+	@Override
+	public void onPreviewFrame(byte[] data, Camera camera) {
+		Paint paint;
+		byte b;
+		
+		for(int i = 0; i < 500; i++) {
+			for(int j = 0; j < 500; j++) {
+				b = data[j * 640 + i];
+				bmp.setPixel(i, j, Color.rgb(b,b,b));
+			}
+		}
+		
+		//Draw test line
+		Canvas canvas = mHolder.lockCanvas();
+		canvas.drawBitmap(bmp, 0,0,null);
+		mHolder.unlockCanvasAndPost(canvas);
+
+		//Add buffer for next preview frame
+		camera.addCallbackBuffer(mBuffer);
+	}
 }
