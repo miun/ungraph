@@ -2,12 +2,10 @@ package miun.android.test;
 
 import miun.android.HelpActivity;
 import miun.android.StartupActivity;
-import miun.android.test.mock.MockFileChooser;
+import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
+import android.net.Uri;
 import android.test.ActivityInstrumentationTestCase2;
-import android.util.Log;
-
 import com.jayway.android.robotium.solo.Solo;
 
 public class StartupActivityTest extends
@@ -16,10 +14,6 @@ public class StartupActivityTest extends
 	private Solo mSolo;
 	private StartupActivity mActivity;
 
-	public StartupActivityTest() {
-		super(StartupActivity.class);
-	}
-	
 	public StartupActivityTest(String name) {
 		super(StartupActivity.class);
 		setName(name);
@@ -46,7 +40,11 @@ public class StartupActivityTest extends
 		assertNotNull(mActivity);
 		assertNotNull(mSolo);
 	}
-
+	/*
+	public void testOptionsMenuInvisibleOnStartup() {
+		fail("No Idea to check if the whole Menu is invisible");
+	}*/
+	
 	public void testOptionsMenuEntries() {
 		mSolo.sendKey(Solo.MENU);
 		assertTrue("Gallery entry not found",mSolo.searchText("Gallery"));
@@ -67,32 +65,13 @@ public class StartupActivityTest extends
 		mSolo.goBack();
 	}
 	
-	public void testReceiveResultCancelledFromFileChooser() {
+	public void testGetIntentFromOtherApplication() {
 		Intent intent = new Intent();
-		intent.putExtra("simu", MockFileChooser.CANCELLED);
-		intent.setAction(".mock.startfc");
-		mActivity.startActivityForResult(intent,StartupActivity.PICK_IMAGE);
-		mSolo.waitForActivity("MockFileChooser",1);
-		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.no_file_selected)));
-		mSolo.assertCurrentActivity("StartupActivity not active after cancel from filechooser", StartupActivity.class);
-	}
-	
-	public void testReceiveWrongFileTypeFromFileChooser() {
-		Intent intent = new Intent();
-		intent.putExtra("simu", MockFileChooser.UNSUPPORTED_FILE);
-		intent.setAction(".mock.startfc");
-		mActivity.startActivityForResult(intent,StartupActivity.PICK_IMAGE);
-		mSolo.waitForActivity("MockFileChooser",1);
-		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.wrong_file_type)));
-	}
-	
-	public void testReceivePictureFromFileChooser() {
-		Intent intent = new Intent();
-		intent.putExtra("simu", MockFileChooser.SUPPORTED_FILE);
-		intent.setAction(".mock.startfc");
-		mActivity.startActivityForResult(intent,StartupActivity.PICK_IMAGE);
-		mSolo.waitForActivity("MockFileChooser",1);
-		mSolo.assertCurrentActivity("Evaluation Activity not called after file load", HelpActivity.class);
+		Uri data = Uri.parse("Ganz toller Uri String");
+		//mSolo.
+		//intent.setData(data);
+		launchActivityWithIntent("miun.android", StartupActivity.class, intent);
+		mSolo.goBack();
 	}
 	
 }
