@@ -40,6 +40,7 @@ public class StartupActivity extends Activity {
         
         mCamera = getFirstCam();
         
+        
         if(mCamera != null) {
         	mPreview = new CameraPreview(this,mCamera);
         	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);

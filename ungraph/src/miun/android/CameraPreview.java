@@ -74,7 +74,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 		}
 	}
 
-	@Override
+	//@Override
 	public void onPreviewFrame(byte[] data, Camera camera) {
 		Paint paint;
 		byte b;
