@@ -1,6 +1,5 @@
 package miun.android.ungraph.preview;
 
-
 import miun.android.ungraph.Line;
 
 import org.opencv.android.Utils;
@@ -9,7 +8,6 @@ import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.view.SurfaceHolder;
 

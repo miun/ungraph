@@ -1,6 +1,5 @@
 package miun.android.ungraph.preview;
 
-
 import miun.android.R;
 import miun.android.ungraph.help.HelpActivity;
 import android.app.Activity;
@@ -16,39 +15,18 @@ import android.view.MenuItem;
 import android.widget.FrameLayout;
 
 public class PreviewActivity extends Activity {
+	private static final int PICK_IMAGE = 1;
+	private CameraPreview mPreview;
 	
-	public static final int PICK_IMAGE = 1;
-	
-	private Camera mCamera;
-	private CameraPreviewBase mPreview;
-	
-	//Return available camera or null
-	private Camera getFirstCam() {
-		try {
-			return Camera.open();
-		}
-		catch (Exception e) {
-			Log.e("ungraph.cam","Cannot open camera");
-			return null;
-		}
-	}
-	
-	
-	
-    /** Called when the activity is first created. */
-    @Override
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        mCamera = getFirstCam();
-        
-        
-        if(mCamera != null) {
-        	mPreview = new CameraPreviewBase(this,mCamera);
-        	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
-        	preview.addView(mPreview);
-        }
+    	//Connect camera preview
+        mPreview = new CameraPreview(this);
+    	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
+    	preview.addView(mPreview);
     }
     
     /*
