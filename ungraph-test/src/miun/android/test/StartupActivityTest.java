@@ -1,9 +1,12 @@
 package miun.android.test;
 
-import miun.android.GraphProcessingActivity;
-import miun.android.HelpActivity;
-import miun.android.StartupActivity;
+import miun.android.ungraph.help.HelpActivity;
+import miun.android.ungraph.preview.StartupActivity;
 import miun.android.test.mock.MockFileChooser;
+import miun.android.ungraph.help.HelpActivity;
+import miun.android.ungraph.preview.StartupActivity;
+import miun.android.ungraph.process.GraphProcessingActivity;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.test.ActivityInstrumentationTestCase2;

@@ -1,13 +1,14 @@
-package miun.android;
+package miun.android.ungraph.preview;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
+import miun.android.FileNotSupportedException;
+import miun.android.ungraph.help.HelpActivity;
+import miun.android.ungraph.process.GraphProcessingActivity;
+import miun.android.R;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -26,7 +27,7 @@ public class StartupActivity extends Activity {
 	public static final int DIALOG_UNSUPPORTEDFILE_ID = 1;
 	
 	private Camera mCamera;
-	private CameraPreview mPreview;
+	private CameraPreviewBase mPreview;
 	
 	//Return available camera or null
 	private Camera getFirstCam() {
@@ -48,8 +49,9 @@ public class StartupActivity extends Activity {
         setContentView(R.layout.main);
         mCamera = getFirstCam();
         
+        
         if(mCamera != null) {
-        	mPreview = new CameraPreview(this,mCamera);
+        	mPreview = new CameraPreviewBase(this,mCamera);
         	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
         	preview.addView(mPreview);
         }
