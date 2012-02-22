@@ -1,10 +1,16 @@
 package miun.android;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
@@ -126,8 +132,33 @@ public class StartupActivity extends Activity {
      * If the file is an image the intend to calculate the image must be started 
      */
     public void processSelectedFile(Uri source) {
-    	Toast.makeText(this, getContentResolver().getType(source), Toast.LENGTH_LONG).show();
-    	
+    	InputStream is = null;
+    	Bitmap bm = null;
+    	try {
+			is = getContentResolver().openInputStream(source);
+			bm = BitmapFactory.decodeStream(is);
+			if (bm == null){
+				throw new FileNotSupportedException("This File type is not supported");
+			}
+			
+			String filename = "temporary_working_file";
+			File workingFile = new File(getFilesDir(),filename);
+			FileOutputStream out = openFileOutput(filename, MODE_PRIVATE);
+			bm.compress(Bitmap.CompressFormat.PNG, 100, out);
+			
+			Intent intent = new Intent(this, GraphProcessingActivity.class);
+			intent.setData(Uri.fromFile(workingFile));
+			startActivity(intent);
+			//TODO I think this activity can finish here for first
+		} catch (FileNotFoundException e) {
+			// In this case no Inputstream could be read from the given Uri... Filechooser is than not supported
+			//TODO show an Dialog with OK Button to inform the user about that
+			Log.d("Startup","Couldnt work with URI....");
+		} catch (FileNotSupportedException e) {
+			// In this case the file selected by the user is not supported (Probably no image file)
+			//TODO show an Dialog with OK Button to inform the user about that
+			Log.d("Startup","Couldnt work with file....");
+		}
     }
     
     

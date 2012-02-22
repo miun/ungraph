@@ -1,5 +1,6 @@
 package miun.android.test;
 
+import miun.android.GraphProcessingActivity;
 import miun.android.HelpActivity;
 import miun.android.StartupActivity;
 import miun.android.test.mock.MockFileChooser;
@@ -40,7 +41,7 @@ public class StartupActivityTest extends
 		mActivity.finish();
 		super.tearDown();
 	}
-	
+	/*
 	//Test preconditions - e.g. the activity is not null
 	public void testPreconditions() {
 		assertNotNull(mActivity);
@@ -85,14 +86,14 @@ public class StartupActivityTest extends
 		mSolo.waitForActivity("MockFileChooser",1);
 		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.wrong_file_type)));
 	}
-	
+	*/
 	public void testReceivePictureFromFileChooser() {
 		Intent intent = new Intent();
 		intent.putExtra("simu", MockFileChooser.SUPPORTED_FILE);
 		intent.setAction(".mock.startfc");
 		mActivity.startActivityForResult(intent,StartupActivity.PICK_IMAGE);
 		mSolo.waitForActivity("MockFileChooser",1);
-		mSolo.assertCurrentActivity("Evaluation Activity not called after file load", HelpActivity.class);
+		mSolo.assertCurrentActivity("Evaluation Activity not called after file load", GraphProcessingActivity.class);
 	}
 	
 }

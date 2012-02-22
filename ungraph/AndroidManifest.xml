@@ -21,6 +21,7 @@
         </activity>
         <activity android:name="HelpActivity"></activity>
         <activity android:name="Tact"></activity>
+        <activity android:name="GraphProcessingActivity"></activity>
     </application>
 
 </manifest>
