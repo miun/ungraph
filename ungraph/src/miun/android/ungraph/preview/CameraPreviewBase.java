@@ -1,98 +1,140 @@
 package miun.android.ungraph.preview;
 
+import java.io.IOException;
+import java.util.List;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ImageFormat;
-import android.graphics.Paint;
 import android.hardware.Camera;
+import android.hardware.Camera.PreviewCallback;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class CameraPreviewBase extends SurfaceView implements SurfaceHolder.Callback,Camera.PreviewCallback {
-/*	@Override
-	public void draw(Canvas canvas) {
-		super.draw(canvas);
-		
-		Paint paint = new Paint();
-		paint.setColor(10);
-		
-		canvas.drawLine(0, 0, 100,100,paint);
-		invalidate();
-	}*/
+public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHolder.Callback,Runnable {
+    private static final String TAG = "Ungraph.CameraPreviewBase";
 
-	private Camera mCamera;
-	private SurfaceHolder mHolder;
-	private byte[] mBuffer;
-	private Bitmap bmp;
-	
-	public CameraPreviewBase(Context context, Camera camera) {
+    private Camera              mCamera;
+    private SurfaceHolder       mHolder;
+    private int                 mFrameWidth;
+    private int                 mFrameHeight;
+    private byte[]              mFrame;
+    protected Bitmap			mBmp;
+    private boolean             mThreadRun;
+
+    public CameraPreviewBase(Context context) {
         super(context);
+        mHolder = getHolder();
+        mHolder.addCallback(this);
+        Log.i(TAG, "Instantiated new " + this.getClass());
+    }
 
-        Camera.Size size;
-        int bpp;
+    public int getFrameWidth() {
+        return mFrameWidth;
+    }
 
-        //Init buffer and callback
-        mCamera = camera;
-    	size = mCamera.getParameters().getPreviewSize();
-        bpp = ImageFormat.getBitsPerPixel(mCamera.getParameters().getPreviewFormat());
-        mBuffer = new byte[size.width * size.height * bpp / 8];
+    public int getFrameHeight() {
+        return mFrameHeight;
+    }
 
-		//Init holder
-    	mHolder = getHolder();
-		mHolder.addCallback(this);
-		//mHolder.setType(SurfaceHolder.);
-		
-		//Create bitmap for preview
-		bmp = Bitmap.createBitmap(500,500,Bitmap.Config.ARGB_8888);
-	}
+    public void surfaceChanged(SurfaceHolder _holder, int format, int width, int height) {
+        Log.i(TAG, "surfaceCreated");
+        if (mCamera != null) {
+            Camera.Parameters params = mCamera.getParameters();
+            List<Camera.Size> sizes = params.getSupportedPreviewSizes();
+            mFrameWidth = width;
+            mFrameHeight = height;
 
-	public void surfaceCreated(SurfaceHolder holder) {
-		mCamera.addCallbackBuffer(mBuffer);
-		mCamera.setPreviewCallbackWithBuffer(this);
-		mCamera.startPreview();
-	}
+            // selecting optimal camera preview size
+            {
+                double minDiff = Double.MAX_VALUE;
+                for (Camera.Size size : sizes) {
+                    if (Math.abs(size.height - height) < minDiff) {
+                        mFrameWidth = size.width;
+                        mFrameHeight = size.height;
+                        minDiff = Math.abs(size.height - height);
+                    }
+                }
+            }
 
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
-		
-	}
+            params.setPreviewSize(getFrameWidth(), getFrameHeight());
+            mCamera.setParameters(params);
 
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-		//Check some stuff
-		if(mHolder.getSurface() == null) return;
-		try { mCamera.stopPreview(); } catch (Exception e) {}
-		
-		try {
-			//mCamera.setPreviewDisplay(mHolder);
-			mCamera.startPreview();
-		}
-		catch (Exception e) {
-			Log.d("ungraph-cam","Cannot restart preview");
-		}
-	}
-
-	//@Override
-	public void onPreviewFrame(byte[] data, Camera camera) {
-		Paint paint;
-		byte b;
-		
-		for(int i = 0; i < 500; i++) {
-			for(int j = 0; j < 500; j++) {
-				b = data[j * 640 + i];
-				bmp.setPixel(i, j, Color.rgb(b,b,b));
+            try {
+            	mFrame = new byte[mFrameWidth * mFrameHeight * ImageFormat.getBitsPerPixel(params.getPreviewFormat()) / 8];
+            	mCamera.addCallbackBuffer(mFrame);
+				mCamera.setPreviewDisplay(null);
+			} catch (IOException e) {
+				Log.e(TAG, "mCamera.setPreviewDisplay fails: " + e);
 			}
-		}
-		
-		//Draw test line
-		Canvas canvas = mHolder.lockCanvas();
-		canvas.drawBitmap(bmp, 0,0,null);
-		mHolder.unlockCanvasAndPost(canvas);
+            
+            //Recreate preview bitmap
+            mBmp.recycle();
+            mBmp = Bitmap.createBitmap(mFrameWidth,mFrameHeight,Bitmap.Config.ARGB_8888);
+            
+            //Start preview
+            mCamera.startPreview();
+        }
+    }
 
-		//Add buffer for next preview frame
-		camera.addCallbackBuffer(mBuffer);
-	}
+    public void surfaceCreated(SurfaceHolder holder) {
+        Log.i(TAG, "surfaceCreated");
+        mCamera = Camera.open();
+        mCamera.setPreviewCallbackWithBuffer(new PreviewCallback() {
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                synchronized (CameraPreviewBase.this) {
+                    CameraPreviewBase.this.notify();
+                }
+            }
+        });
+        (new Thread(this)).start();
+    }
+
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.i(TAG, "surfaceDestroyed");
+        mThreadRun = false;
+        if (mCamera != null) {
+            synchronized (this) {
+                mCamera.stopPreview();
+                mCamera.setPreviewCallback(null);
+                mCamera.release();
+                mCamera = null;
+                
+                if(mBmp != null) mBmp = null;
+            }
+        }
+    }
+
+    protected abstract boolean processFrame(byte[] data);
+
+    public void run() {
+    	Boolean result;
+    	
+    	mThreadRun = true;
+        Log.i(TAG, "Starting processing thread");
+        while (mThreadRun) {
+            Bitmap bmp = null;
+
+            synchronized (this) {
+                try {
+                    this.wait();
+                    result = processFrame(mFrame);
+                    mCamera.addCallbackBuffer(mFrame);
+                } catch (InterruptedException e) {
+                	result = false;
+                    e.printStackTrace();
+                }
+            }
+
+            if (result) {
+                Canvas canvas = mHolder.lockCanvas();
+                if (canvas != null) {
+                    canvas.drawBitmap(bmp, (canvas.getWidth() - getFrameWidth()) / 2, (canvas.getHeight() - getFrameHeight()) / 2, null);
+                    mHolder.unlockCanvasAndPost(canvas);
+                }
+            }
+        }
+    }
 }

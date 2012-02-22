@@ -1,7 +1,7 @@
 package miun.android.test;
 
 import miun.android.ungraph.help.HelpActivity;
-import miun.android.ungraph.preview.StartupActivity;
+import miun.android.ungraph.preview.PreviewActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,13 +9,13 @@ import android.test.ActivityInstrumentationTestCase2;
 import com.jayway.android.robotium.solo.Solo;
 
 public class StartupActivityTest extends
-		ActivityInstrumentationTestCase2<StartupActivity> {
+		ActivityInstrumentationTestCase2<PreviewActivity> {
 	
 	private Solo mSolo;
-	private StartupActivity mActivity;
+	private PreviewActivity mActivity;
 
 	public StartupActivityTest(String name) {
-		super(StartupActivity.class);
+		super(PreviewActivity.class);
 		setName(name);
 	}
 
@@ -70,7 +70,7 @@ public class StartupActivityTest extends
 		Uri data = Uri.parse("Ganz toller Uri String");
 		//mSolo.
 		//intent.setData(data);
-		launchActivityWithIntent("miun.android", StartupActivity.class, intent);
+		launchActivityWithIntent("miun.android", PreviewActivity.class, intent);
 		mSolo.goBack();
 	}
 	
