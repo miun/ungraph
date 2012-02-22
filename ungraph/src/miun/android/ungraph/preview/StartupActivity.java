@@ -1,5 +1,8 @@
-package miun.android;
+package miun.android.ungraph.preview;
 
+
+import miun.android.R;
+import miun.android.ungraph.help.HelpActivity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -17,7 +20,7 @@ public class StartupActivity extends Activity {
 	public static final int PICK_IMAGE = 1;
 	
 	private Camera mCamera;
-	private CameraPreview mPreview;
+	private CameraPreviewBase mPreview;
 	
 	//Return available camera or null
 	private Camera getFirstCam() {
@@ -42,7 +45,7 @@ public class StartupActivity extends Activity {
         
         
         if(mCamera != null) {
-        	mPreview = new CameraPreview(this,mCamera);
+        	mPreview = new CameraPreviewBase(this,mCamera);
         	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
         	preview.addView(mPreview);
         }

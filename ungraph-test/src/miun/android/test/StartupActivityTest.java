@@ -1,7 +1,7 @@
 package miun.android.test;
 
-import miun.android.HelpActivity;
-import miun.android.StartupActivity;
+import miun.android.ungraph.help.HelpActivity;
+import miun.android.ungraph.preview.StartupActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;

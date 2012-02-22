@@ -1,5 +1,8 @@
-package miun.android;
+package miun.android.ungraph.process;
 
+
+import miun.android.R;
+import miun.android.ungraph.preview.CameraPreviewBase;
 import android.app.Activity;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
@@ -9,7 +12,7 @@ import android.widget.FrameLayout;
 
 public class UngraphActivity extends Activity {
 	private Camera mCamera;
-	private CameraPreview mPreview;
+	private CameraPreviewBase mPreview;
 	
 	//Return available camera or null
 	private Camera getFirstCam() {
@@ -32,7 +35,7 @@ public class UngraphActivity extends Activity {
         mCamera = getFirstCam();
         
         if(mCamera != null) {
-        	mPreview = new CameraPreview(this,mCamera);
+        	mPreview = new CameraPreviewBase(this,mCamera);
         	FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         	preview.addView(mPreview);
         }
