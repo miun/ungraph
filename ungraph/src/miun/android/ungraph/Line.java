@@ -5,6 +5,7 @@ import org.opencv.utils.Converters;
 
 import android.graphics.Rect;
 
+
 public class Line {
 	private long x1,y1;
 	private long x2,y2;

@@ -1,31 +1,25 @@
 package miun.android.test;
 
-import miun.android.ungraph.help.HelpActivity;
-import miun.android.ungraph.preview.StartupActivity;
 import miun.android.test.mock.MockFileChooser;
-import miun.android.ungraph.help.HelpActivity;
-import miun.android.ungraph.preview.StartupActivity;
+import miun.android.ungraph.preview.PreviewActivity;
 import miun.android.ungraph.process.GraphProcessingActivity;
-import android.app.Activity;
 import android.content.Intent;
-import android.os.Bundle;
 import android.test.ActivityInstrumentationTestCase2;
-import android.util.Log;
 
 import com.jayway.android.robotium.solo.Solo;
 
 public class StartupActivityTest extends
-		ActivityInstrumentationTestCase2<StartupActivity> {
+		ActivityInstrumentationTestCase2<PreviewActivity> {
 	
 	private Solo mSolo;
-	private StartupActivity mActivity;
+	private PreviewActivity mActivity;
 
 	public StartupActivityTest() {
-		super(StartupActivity.class);
+		super(PreviewActivity.class);
 	}
 	
 	public StartupActivityTest(String name) {
-		super(StartupActivity.class);
+		super(PreviewActivity.class);
 		setName(name);
 	}
 
@@ -94,7 +88,7 @@ public class StartupActivityTest extends
 		Intent intent = new Intent();
 		intent.putExtra("simu", MockFileChooser.SUPPORTED_FILE);
 		intent.setAction(".mock.startfc");
-		mActivity.startActivityForResult(intent,StartupActivity.PICK_IMAGE);
+		mActivity.startActivityForResult(intent,PreviewActivity.PICK_IMAGE);
 		mSolo.waitForActivity("MockFileChooser",1);
 		mSolo.assertCurrentActivity("Evaluation Activity not called after file load", GraphProcessingActivity.class);
 	}
