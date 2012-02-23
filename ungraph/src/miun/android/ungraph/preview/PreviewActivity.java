@@ -4,16 +4,14 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-import miun.android.FileNotSupportedException;
 import miun.android.R;
+import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
 import miun.android.ungraph.process.GraphProcessingActivity;
-import miun.android.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,11 +21,15 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class PreviewActivity extends Activity {
+	private static final String TAG = "PreviewActivity";
+	
 	public static final int PICK_IMAGE = 1;
 	private CameraPreview mPreview;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
+		Log.i(TAG, "Instantiated new " + this.getClass());
+		
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
@@ -44,13 +46,14 @@ public class PreviewActivity extends Activity {
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    	Log.d("Startup","onActivityResult wird aufgerufen "+ resultCode);
+    	Log.i(TAG, "called onActivityResult with resultCode: " + resultCode + "and requestCode: " + requestCode);
+    	
     	switch (requestCode) {
-    	//In this case the user selected an image from his harddrive
 		case PreviewActivity.PICK_IMAGE:
+			//User really picked something from a file browser
 			if (resultCode == Activity.RESULT_OK) {
 				this.processSelectedFile(data.getData());
-			}else {
+			}else { //User cancelled file picking
 				Toast.makeText(this, R.string.no_file_selected, Toast.LENGTH_SHORT).show();
 			}
 			break;
