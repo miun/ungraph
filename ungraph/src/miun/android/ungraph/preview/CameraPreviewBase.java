@@ -71,7 +71,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 			}
             
             //Recreate preview bitmap
-            mBmp.recycle();
+            if(mBmp != null) mBmp.recycle();
             mBmp = Bitmap.createBitmap(mFrameWidth,mFrameHeight,Bitmap.Config.ARGB_8888);
             
             //Start preview
@@ -115,9 +115,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     	mThreadRun = true;
         Log.i(TAG, "Starting processing thread");
         while (mThreadRun) {
-            Bitmap bmp = null;
-
-            synchronized (this) {
+             synchronized (this) {
                 try {
                     this.wait();
                     result = processFrame(mFrame);
@@ -131,7 +129,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
             if (result) {
                 Canvas canvas = mHolder.lockCanvas();
                 if (canvas != null) {
-                    canvas.drawBitmap(bmp, (canvas.getWidth() - getFrameWidth()) / 2, (canvas.getHeight() - getFrameHeight()) / 2, null);
+                    canvas.drawBitmap(mBmp, (canvas.getWidth() - getFrameWidth()) / 2, (canvas.getHeight() - getFrameHeight()) / 2, null);
                     mHolder.unlockCanvasAndPost(canvas);
                 }
             }
