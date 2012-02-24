@@ -1,7 +1,7 @@
 package miun.android.ungraph;
 
-
-import org.opencv.utils.Converters;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
 
 import android.graphics.Rect;
 
@@ -10,6 +10,8 @@ public class Line {
 	private long x2,y2;
 	
 	public Line(long _x1,long _y1,long _x2,long _y2) {
+		//Point temp = new Point(10,20);
+		
 		x1 = _x1;
 		x2 = _x2;
 		y1 = _y1;
@@ -105,5 +107,20 @@ public class Line {
 
 	public void draw() {
 		//TODO
+	}
+	
+	public Point begin() {
+		return new Point(x1,y1);
+	}
+
+	public Point end() {
+		return new Point(x2,y2);
+	}
+	
+	//Find the beginning and end of the line in an black / white (for example canny filtered) image
+	public Line analyseLineLength(Mat image) {
+		//OpenCv.Core.LineIterator li;
+		
+		return null;
 	}
 }

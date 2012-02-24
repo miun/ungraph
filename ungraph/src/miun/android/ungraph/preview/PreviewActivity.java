@@ -21,12 +21,13 @@ public class PreviewActivity extends Activity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        //setContentView(R.layout.main);
+        setContentView(new CameraPreview(this));
         
     	//Connect camera preview
-        mPreview = new CameraPreview(this);
+/*        mPreview = new CameraPreview(this);
     	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
-    	preview.addView(mPreview);
+    	preview.addView(mPreview);*/
     }
     
     /*
