@@ -1,29 +1,43 @@
 package miun.android.ungraph.preview;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.FileNameMap;
+import java.net.URLConnection;
 
 import miun.android.R;
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
 import miun.android.ungraph.process.GraphProcessingActivity;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.net.Uri.Builder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.MimeTypeMap;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class PreviewActivity extends Activity {
 	private static final String TAG = "PreviewActivity";
 	
+	//onActivityResult constants
 	public static final int PICK_IMAGE = 1;
+	//onCreateDialog constants
+	public static final int DIALOG_FILECHOOSER_UNSUPPORTED = 1;
+	public static final int DIALOG_FILETYPE_UNSUPPORTED = 2;
 	private CameraPreview mPreview;
 	
 	@Override
@@ -47,7 +61,6 @@ public class PreviewActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	Log.i(TAG, "called onActivityResult with resultCode: " + resultCode + "and requestCode: " + requestCode);
-    	
     	switch (requestCode) {
 		case PreviewActivity.PICK_IMAGE:
 			//User really picked something from a file browser
@@ -59,13 +72,34 @@ public class PreviewActivity extends Activity {
 			break;
 		}
     }
-    /*
+    
     @Override
     protected Dialog onCreateDialog(int id) {
     	Dialog dialog;
+    	AlertDialog.Builder builder;
     	switch (id) {
-    	case DIALOG_UNSUPPORTEDFILE_ID:
-    		
+    	case DIALOG_FILECHOOSER_UNSUPPORTED:
+    		builder = new AlertDialog.Builder(this);
+    		builder.setMessage(R.string.wrong_filechooser)
+    			.setCancelable(false)
+    			.setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+    		           public void onClick(DialogInterface dialog, int id) {
+    		                startFileChooserIntent();
+    		           }
+    		       });
+    		dialog = builder.create();
+    		break;
+    	
+    	case DIALOG_FILETYPE_UNSUPPORTED:
+    		builder = new AlertDialog.Builder(this);
+    		builder.setMessage(R.string.wrong_file_type)
+				.setCancelable(false)
+				.setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                startFileChooserIntent();
+		           }
+		       });
+    		dialog = builder.create();
     		break;
     		
     	default:
@@ -73,7 +107,7 @@ public class PreviewActivity extends Activity {
     	}
     	return dialog;
     }
-    */
+    
     /*
      * Is called when the user presses the handsets menu button
      * (non-Javadoc)
@@ -96,11 +130,7 @@ public class PreviewActivity extends Activity {
     	super.onOptionsItemSelected(item);
         switch(item.getItemId()){
         case R.id.gallery:
-        	Intent intent = new Intent();
-        	intent.setType("image/*");
-        	intent.setAction(Intent.ACTION_GET_CONTENT);
-        	String selectImage = getResources().getString(R.string.select_picture);
-        	startActivityForResult(Intent.createChooser(intent, selectImage), PreviewActivity.PICK_IMAGE);
+        	startFileChooserIntent();
         	return true;
         case R.id.help:
             startActivity(new Intent(this, HelpActivity.class));
@@ -109,40 +139,91 @@ public class PreviewActivity extends Activity {
         return false;
     }
     
+    public void startFileChooserIntent(){
+    	Intent intent = new Intent();
+    	intent.setType("image/*");
+    	intent.setAction(Intent.ACTION_GET_CONTENT);
+    	String selectImage = getResources().getString(R.string.select_picture);
+    	startActivityForResult(Intent.createChooser(intent, selectImage), PreviewActivity.PICK_IMAGE);
+    }
+    
     /*
      * This method should process the file returned by the selector. 
      * If the file is not an image file a Dialog should be shown to inform the user that 
      * it was unsuccessful.. 
      * If the file is an image the intend to calculate the image must be started 
      */
-    public void processSelectedFile(Uri source) {
+    public void processSelectedFile(Uri source) {/*
+    	String mimeType = getContentResolver().getType(source);
+    	if (mimeType != null){ //Then wie got a content Uri and the mime type could be defined
+    		Log.d(TAG,"Content Uri from Gallery: " + source);
+    		Log.d(TAG,"Mime Type: " + mimeType);
+    	}else { // we got an URL were the file Type could not be defined by the contentresolver
+    		Log.d(TAG,"File URL... Path: " + source.getPath());
+    		FileNameMap fileNameMap = URLConnection.getFileNameMap();
+    		mimeType = fileNameMap.getContentTypeFor(source.getPath());
+    		Log.d(TAG,"Mime Type: " + mimeType);
+    	}
+    	
+    	if (!mimeType.startsWith("image/")){
+    		throw new FileNotSupportedException("The File is not an image File");
+    	}*/
+    	
     	InputStream is = null;
     	Bitmap bm = null;
     	try {
 			is = getContentResolver().openInputStream(source);
-			bm = BitmapFactory.decodeStream(is);
+			BitmapFactory.Options op = new BitmapFactory.Options();
+			//op.inPurgeable = true;
+			op.inSampleSize = 8192;
+			bm = BitmapFactory.decodeStream(is,null,op);
+			is.close();
 			if (bm == null){
 				throw new FileNotSupportedException("This File type is not supported");
+			}else {
+				bm.recycle();
+				bm = null;
 			}
-			
-			String filename = "temporary_working_file";
-			File workingFile = new File(getFilesDir(),filename);
-			FileOutputStream out = openFileOutput(filename, MODE_PRIVATE);
-			bm.compress(Bitmap.CompressFormat.PNG, 100, out);
-			
-			Intent intent = new Intent(this, GraphProcessingActivity.class);
-			intent.setData(Uri.fromFile(workingFile));
-			startActivity(intent);
-			//TODO I think this activity can finish here for first
+			System.gc();
 		} catch (FileNotFoundException e) {
 			// In this case no Inputstream could be read from the given Uri... Filechooser is than not supported
 			//TODO show an Dialog with OK Button to inform the user about that
-			Log.d("Startup","Couldnt work with URI....");
+			Log.d(TAG,"Couldnt work with URI....");
+			return;
 		} catch (FileNotSupportedException e) {
 			// In this case the file selected by the user is not supported (Probably no image file)
 			//TODO show an Dialog with OK Button to inform the user about that
-			Log.d("Startup","Couldnt work with file....");
+			Log.d(TAG,"Couldnt work with file....");
+			showDialog(DIALOG_FILETYPE_UNSUPPORTED);
+			return;
+		} catch (IOException e) {
+			// If the Inputstream can not be closed
+			Log.d(TAG,"Could not close InputStream");
 		}
+		/*
+		String filename = "temporary_working_file";
+		File workingFile = new File(getFilesDir(),filename);
+		FileOutputStream out = null;
+		try {
+			out = openFileOutput(filename, MODE_PRIVATE);
+			Log.d(TAG,"Before compress");
+			bm.compress(Bitmap.CompressFormat.PNG, 100, out);
+			bm.recycle();
+			Log.d(TAG,"After compress");
+			out.close();
+		} catch (FileNotFoundException e) {
+			Log.d(TAG,"Could not create temporary file");
+			return;
+		} catch (IOException e) {
+			// If the Outputstream can not be closed
+			Log.d(TAG,"Could not close OutputStream");
+		}
+		*/
+		Intent intent = new Intent(this, GraphProcessingActivity.class);
+		intent.setData(source);
+		startActivity(intent);
+		//TODO I think this activity can finish here for first
+		
     }
     
     

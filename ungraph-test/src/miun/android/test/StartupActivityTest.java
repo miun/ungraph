@@ -64,26 +64,26 @@ public class StartupActivityTest extends
 		mSolo.assertCurrentActivity("HelpActivity not Called", HelpActivity.class);
 		mSolo.goBack();
 	}
-	
+	*/
 	public void testReceiveResultCancelledFromFileChooser() {
 		Intent intent = new Intent();
 		intent.putExtra("simu", MockFileChooser.CANCELLED);
 		intent.setAction(".mock.startfc");
-		mActivity.startActivityForResult(intent,StartupActivity.PICK_IMAGE);
+		mActivity.startActivityForResult(intent,PreviewActivity.PICK_IMAGE);
 		mSolo.waitForActivity("MockFileChooser",1);
 		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.no_file_selected)));
-		mSolo.assertCurrentActivity("StartupActivity not active after cancel from filechooser", StartupActivity.class);
+		mSolo.assertCurrentActivity("StartupActivity not active after cancel from filechooser", PreviewActivity.class);
 	}
 	
 	public void testReceiveWrongFileTypeFromFileChooser() {
 		Intent intent = new Intent();
 		intent.putExtra("simu", MockFileChooser.UNSUPPORTED_FILE);
 		intent.setAction(".mock.startfc");
-		mActivity.startActivityForResult(intent,StartupActivity.PICK_IMAGE);
+		mActivity.startActivityForResult(intent,PreviewActivity.PICK_IMAGE);
 		mSolo.waitForActivity("MockFileChooser",1);
 		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.wrong_file_type)));
 	}
-	*/
+	
 	public void testReceivePictureFromFileChooser() {
 		Intent intent = new Intent();
 		intent.putExtra("simu", MockFileChooser.SUPPORTED_FILE);
@@ -91,6 +91,7 @@ public class StartupActivityTest extends
 		mActivity.startActivityForResult(intent,PreviewActivity.PICK_IMAGE);
 		mSolo.waitForActivity("MockFileChooser",1);
 		mSolo.assertCurrentActivity("Evaluation Activity not called after file load", GraphProcessingActivity.class);
+		mSolo.goBack();
 	}
 	
 }

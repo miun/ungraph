@@ -1,15 +1,21 @@
 package miun.android.ungraph.process;
 
-import java.io.InputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import miun.android.R;
+
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 public class GraphProcessingActivity extends Activity {
@@ -22,11 +28,44 @@ public class GraphProcessingActivity extends Activity {
     	
         super.onCreate(savedInstanceState);
         setContentView(R.layout.graphprocessing);
-        
-        ImageView imageView = (ImageView) findViewById(R.id.bitmapview);
+        try {
+			Mat mat = Utils.bitmapToMat(BitmapFactory.decodeStream(getContentResolver().openInputStream(getIntent().getData())));
+			Bitmap b = Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888);
+			Utils.matToBitmap(mat, b);
+			ImageView imageView = (ImageView) findViewById(R.id.bitmapview);
+			imageView.setImageBitmap(b);
+			b.recycle();
+			b = null;
+			System.gc();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+        /*
         //InputStream is = getContentResolver().openInputStream(getIntent().getData());
 		//Bitmap bm = BitmapFactory.decodeStream(is);
-        imageView.setImageURI(getIntent().getData());
-        
+        Uri uri = getIntent().getData();
+        Mat mat = null;
+        try {
+			mat = Utils.bitmapToMat(MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri));
+			Log.d(TAG, "Height: "+mat.height());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ImageView imageView = (ImageView) findViewById(R.id.bitmapview);
+		if(mat != null){
+			Bitmap b = Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888);
+			Utils.matToBitmap(mat, b);
+			Log.d(TAG, "Height bm: " + b.getHeight());
+			imageView.setImageBitmap(b);
+		}else {
+			imageView.setImageURI(getIntent().getData());
+		}*/
     }
 }

@@ -32,8 +32,7 @@ public class MockFileChooser extends Activity {
         	break;
         case UNSUPPORTED_FILE:
         	resultIntent = new Intent();
-        	Log.d("Mock", Uri.parse("android.resource://miun.android.test/"+miun.android.test.R.raw.mocktxt).toString());
-        	resultIntent.setData(Uri.parse("android.resource://miun.android.test.mock/"+miun.android.test.R.raw.mocktxt));
+        	resultIntent.setData(putToApplicationFolder(getResources().openRawResource(miun.android.test.R.raw.mocktxt)));
         	setResult(RESULT_OK,resultIntent);
         	break;
         case SUPPORTED_FILE:

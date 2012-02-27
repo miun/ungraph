@@ -7,5 +7,6 @@
     <string name="select_picture">Select picture</string>
     <string name="no_file_selected">File selection cancelled</string>
     <string name="wrong_file_type">Please select only Image files</string>
+    <string name="wrong_filechooser">The filechooser you choosed your file with, is not supported. Please use an other one instead.</string>
 
 </resources>
