@@ -2,10 +2,10 @@ package miun.android.test;
 
 import miun.android.ungraph.help.HelpActivity;
 import miun.android.ungraph.preview.PreviewActivity;
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.test.ActivityInstrumentationTestCase2;
+
 import com.jayway.android.robotium.solo.Solo;
 
 public class StartupActivityTest extends

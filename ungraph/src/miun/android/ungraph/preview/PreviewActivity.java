@@ -1,18 +1,24 @@
 package miun.android.ungraph.preview;
 
 import miun.android.R;
+import miun.android.ungraph.Line;
+import miun.android.ungraph.LineIterator;
 import miun.android.ungraph.help.HelpActivity;
+
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.FrameLayout;
 
 public class PreviewActivity extends Activity {
 	private static final int PICK_IMAGE = 1;
@@ -21,6 +27,30 @@ public class PreviewActivity extends Activity {
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //TEST//
+        Mat img;
+        Point point;
+        img = Mat.zeros(200,200,CvType.CV_8UC1);
+        
+/*        Line line = new Line(0,50,200,100);
+        LineIterator it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();
+
+        line = new Line(200,50,0,100);
+        it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();
+
+        line = new Line(50,0,100,200);
+        it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();
+
+        line = new Line(50,200,100,0);
+        it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();*/
+
+        //return;
+        
         //setContentView(R.layout.main);
         setContentView(new CameraPreview(this));
         
