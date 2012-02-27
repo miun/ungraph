@@ -1,17 +1,17 @@
 package miun.android.ungraph.preview;
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.FileNameMap;
-import java.net.URLConnection;
 
 import miun.android.R;
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
 import miun.android.ungraph.process.GraphProcessingActivity;
+
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -19,16 +19,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.net.Uri.Builder;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.webkit.MimeTypeMap;
-import android.widget.FrameLayout;
 import android.widget.Toast;
+
 
 public class PreviewActivity extends Activity {
 	private static final String TAG = "PreviewActivity";
@@ -45,12 +42,37 @@ public class PreviewActivity extends Activity {
 		Log.i(TAG, "Instantiated new " + this.getClass());
 		
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+
+        //TEST//
+        Mat img;
+        Point point;
+        img = Mat.zeros(200,200,CvType.CV_8UC1);
+        
+/*        Line line = new Line(0,50,200,100);
+        LineIterator it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();
+
+        line = new Line(200,50,0,100);
+        it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();
+
+        line = new Line(50,0,100,200);
+        it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();
+
+        line = new Line(50,200,100,0);
+        it = new LineIterator(line,false);
+        while(it.hasNext()) point = (Point)it.next();*/
+
+        //return;
+        
+        //setContentView(R.layout.main);
+        setContentView(new CameraPreview(this));
         
     	//Connect camera preview
-        mPreview = new CameraPreview(this);
+/*        mPreview = new CameraPreview(this);
     	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
-    	preview.addView(mPreview);
+    	preview.addView(mPreview);*/
     }
     
     /*

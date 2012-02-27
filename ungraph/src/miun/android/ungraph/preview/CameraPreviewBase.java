@@ -13,7 +13,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHolder.Callback,Runnable {
+public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHolder.Callback,Runnable,PreviewCallback {
     private static final String TAG = "Ungraph.CameraPreviewBase";
 
     private Camera              mCamera;
@@ -40,7 +40,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     }
 
     public void surfaceChanged(SurfaceHolder _holder, int format, int width, int height) {
-        Log.i(TAG, "surfaceCreated");
+        Log.i(TAG, "surfaceChanged");
         if (mCamera != null) {
             Camera.Parameters params = mCamera.getParameters();
             List<Camera.Size> sizes = params.getSupportedPreviewSizes();
@@ -62,15 +62,16 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
             params.setPreviewSize(getFrameWidth(), getFrameHeight());
             mCamera.setParameters(params);
 
+            //Create buffer
             try {
             	mFrame = new byte[mFrameWidth * mFrameHeight * ImageFormat.getBitsPerPixel(params.getPreviewFormat()) / 8];
-            	mCamera.addCallbackBuffer(mFrame);
 				mCamera.setPreviewDisplay(null);
+            	mCamera.addCallbackBuffer(mFrame);
 			} catch (IOException e) {
 				Log.e(TAG, "mCamera.setPreviewDisplay fails: " + e);
 			}
             
-            //Recreate preview bitmap
+            //(Re)create preview bitmap
             if(mBmp != null) mBmp.recycle();
             mBmp = Bitmap.createBitmap(mFrameWidth,mFrameHeight,Bitmap.Config.ARGB_8888);
             
@@ -81,29 +82,50 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 
     public void surfaceCreated(SurfaceHolder holder) {
         Log.i(TAG, "surfaceCreated");
+        
+        //Open camera and set preview callback class
         mCamera = Camera.open();
-        mCamera.setPreviewCallbackWithBuffer(new PreviewCallback() {
-            public void onPreviewFrame(byte[] data, Camera camera) {
-                synchronized (CameraPreviewBase.this) {
-                    CameraPreviewBase.this.notify();
-                }
-            }
-        });
-        (new Thread(this)).start();
+        mCamera.setPreviewCallbackWithBuffer(this);
+        
+        //(new Thread(this)).start();
+    }
+
+    public void onPreviewFrame(byte[] data, Camera camera) {
+    	if(mFrame != data) {
+    		//Something went wrong
+    		assert(false);
+    	}
+    	
+        boolean result = processFrame(mFrame);
+
+        if (result) {
+		    Canvas canvas = mHolder.lockCanvas();
+		    if (canvas != null) {
+		        canvas.drawBitmap(mBmp, (canvas.getWidth() - getFrameWidth()) / 2, (canvas.getHeight() - getFrameHeight()) / 2, null);
+		        mHolder.unlockCanvasAndPost(canvas);
+		    }
+		}
+
+        mCamera.addCallbackBuffer(mFrame);
+
+/*        synchronized (CameraPreviewBase.this) {
+        	//mFrame = data;
+            CameraPreviewBase.this.notify();
+        }*/
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.i(TAG, "surfaceDestroyed");
         mThreadRun = false;
         if (mCamera != null) {
-            synchronized (this) {
+//            synchronized (this) {
                 mCamera.stopPreview();
                 mCamera.setPreviewCallback(null);
                 mCamera.release();
                 mCamera = null;
                 
                 if(mBmp != null) mBmp = null;
-            }
+//            }
         }
     }
 
@@ -115,16 +137,17 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     	mThreadRun = true;
         Log.i(TAG, "Starting processing thread");
         while (mThreadRun) {
-             synchronized (this) {
+        	synchronized (this) {
                 try {
                     this.wait();
                     result = processFrame(mFrame);
+                    //result = false;
                     mCamera.addCallbackBuffer(mFrame);
                 } catch (InterruptedException e) {
                 	result = false;
                     e.printStackTrace();
                 }
-            }
+        	}
 
             if (result) {
                 Canvas canvas = mHolder.lockCanvas();

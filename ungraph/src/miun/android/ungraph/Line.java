@@ -1,7 +1,8 @@
 package miun.android.ungraph;
 
-
-import org.opencv.utils.Converters;
+import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Size;
 
 import android.graphics.Rect;
 
@@ -11,6 +12,8 @@ public class Line {
 	private long x2,y2;
 	
 	public Line(long _x1,long _y1,long _x2,long _y2) {
+		//Point temp = new Point(10,20);
+		
 		x1 = _x1;
 		x2 = _x2;
 		y1 = _y1;
@@ -106,5 +109,90 @@ public class Line {
 
 	public void draw() {
 		//TODO
+	}
+	
+	public Point begin() {
+		return new Point(x1,y1);
+	}
+
+	public Point end() {
+		return new Point(x2,y2);
+	}
+	
+	//Find the beginning and end of the line in an black / white (for example canny filtered) image
+	public Line analyseLineLength(Mat image) {
+		LineIterator li = new LineIterator(this,false);
+		Point p0 = begin();
+		Point p1 = end();
+		Point current;
+		int threshold = 0;
+		double[] pix;
+		
+		Size size = image.size();
+		
+		//Find beginning of line
+		while(li.hasNext()) {
+			current = (Point)li.next();
+			
+			if(current.x >= size.width || current.y >= size.height) {
+				assert(true);
+			}
+			
+			pix = image.get((int)Math.round(current.y),(int)Math.round(current.x));
+			if(pix == null) {
+				assert(true);
+			}
+			
+			if(pix[0] != 0) {
+				//Increase threshold
+				threshold++;
+
+				//Check threshold
+				if(threshold == 1) {
+					p0 = current;
+				}
+				if(threshold == 3) {
+					break;
+				}
+			}
+			else {
+				//Reset threshold
+				p0 = current;
+				threshold = 0;
+			}
+		}
+
+		//Find end of line
+		threshold = 0;
+		while(li.hasNext()) {
+			current = (Point)li.next();
+			if(image.get((int)Math.round(current.y),(int)Math.round(current.x))[0] == 0) {
+				//Increase threshold and remember end
+				threshold++;
+				
+				//Check threshold
+				if(threshold == 3) {
+					break;
+				}
+			}
+			else {
+				//Reset threshold
+				p1 = current;
+				threshold = 0;
+			}
+		}
+		
+		//Set new line
+		x1 = Math.round(p0.x);
+		y1 = Math.round(p0.y);
+		x2 = Math.round(p1.x);
+		y2 = Math.round(p1.y);
+
+		return this;
+	}
+	
+	public double length() {
+		//Return greek length
+		return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)); 
 	}
 }
