@@ -3,14 +3,10 @@
     android:orientation="horizontal"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content">
- 
     <TextView android:id="@+id/grp_child"
          android:paddingLeft="20dp"
          android:textSize="15dp"
          android:textStyle="normal"
-         android:clickable="false"
-         android:focusable="false"
-         android:enabled="false"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"/>
 </LinearLayout>

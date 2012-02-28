@@ -84,6 +84,7 @@ public class StartupActivityTest extends
 		mActivity.startActivityForResult(intent,PreviewActivity.PICK_IMAGE);
 		mSolo.waitForActivity("MockFileChooser",1);
 		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.wrong_file_type)));
+		mSolo.clickOnText(mSolo.getString(android.R.string.ok));
 	}
 	
 	public void testReceivePictureFromFileChooser() {

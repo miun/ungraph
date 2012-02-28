@@ -5,7 +5,7 @@
     android:layout_height="fill_parent">
  
     <TextView android:id="@+id/row_name"
-         android:paddingLeft="25dp"
+         android:paddingLeft="30dp"
          android:textSize="20dp"
          android:textStyle="normal"
          android:layout_width="fill_parent"

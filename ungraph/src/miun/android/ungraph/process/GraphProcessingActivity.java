@@ -28,7 +28,7 @@ public class GraphProcessingActivity extends Activity {
     	
         super.onCreate(savedInstanceState);
         setContentView(R.layout.graphprocessing);
-        try {
+        /*try {
 			Mat mat = Utils.bitmapToMat(BitmapFactory.decodeStream(getContentResolver().openInputStream(getIntent().getData())));
 			Bitmap b = Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888);
 			Utils.matToBitmap(mat, b);
@@ -40,7 +40,7 @@ public class GraphProcessingActivity extends Activity {
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 		
 		
         /*
