@@ -1,28 +1,27 @@
 package miun.android.ungraph.preview;
 
 import miun.android.R;
-import miun.android.ungraph.Line;
-import miun.android.ungraph.LineIterator;
 import miun.android.ungraph.help.HelpActivity;
 
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Point;
+import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class PreviewActivity extends Activity {
+public class PreviewActivity extends Activity implements CameraButtonReceiver,PictureCallback {
 	private static final int PICK_IMAGE = 1;
 	private CameraPreview mPreview;
+	private CameraButton mCameraButton;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -131,7 +130,12 @@ public class PreviewActivity extends Activity {
 		//alertDialog.setIcon(R.drawable.icon);
 		alertDialog.show();
     }
-    
-    
-    
+
+	public void onCameraButtonPressed() {
+		mPreview.takePicture(this);
+	}
+
+	public void onPictureTaken(byte[] arg0, Camera arg1) {
+		System.out.println(arg0.length);
+	}
 }
