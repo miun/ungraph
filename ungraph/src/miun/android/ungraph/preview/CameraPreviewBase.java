@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -130,6 +131,12 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     }
 
     protected abstract boolean processFrame(byte[] data);
+    
+    public void takePicture(PictureCallback callback) {
+    	if(mCamera != null) {
+    		mCamera.takePicture(null,callback,null);
+    	}
+    }
 
     public void run() {
     	Boolean result;

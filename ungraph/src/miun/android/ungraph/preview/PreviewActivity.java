@@ -1,14 +1,10 @@
 package miun.android.ungraph.preview;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 
 import miun.android.R;
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
-import miun.android.ungraph.process.GraphProcessingActivity;
 
-import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -18,17 +14,15 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-
-public class PreviewActivity extends Activity {
+public class PreviewActivity extends Activity implements CameraButtonReceiver,PictureCallback {
 	private static final String TAG = "PreviewActivity";
 	
 	//onActivityResult constants
@@ -38,6 +32,7 @@ public class PreviewActivity extends Activity {
 	public static final int DIALOG_FILETYPE_UNSUPPORTED = 2;
 
 	private CameraPreview mPreview;
+	private CameraButton mCameraButton;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -182,5 +177,12 @@ public class PreviewActivity extends Activity {
     	String selectImage = getResources().getString(R.string.select_picture);
     	startActivityForResult(Intent.createChooser(intent, selectImage), PreviewActivity.PICK_IMAGE);
     }
-    
+
+	public void onCameraButtonPressed() {
+		mPreview.takePicture(this);
+	}
+
+	public void onPictureTaken(byte[] arg0, Camera arg1) {
+		System.out.println(arg0.length);
+	}
 }

@@ -10,6 +10,7 @@ import android.graphics.Rect;
 public class Line {
 	private long x1,y1;
 	private long x2,y2;
+	private double rho,theta;
 	
 	public Line(long _x1,long _y1,long _x2,long _y2) {
 		//Point temp = new Point(10,20);
@@ -18,6 +19,9 @@ public class Line {
 		x2 = _x2;
 		y1 = _y1;
 		y2 = _y2;
+		
+		//not used in this case
+		rho = theta = 0; 
 	}
 	
 	//Create a line in the euclidian room from hough parameters
@@ -26,6 +30,10 @@ public class Line {
 		double sina = Math.sin(theta);
 		int edges = 0;
 		int xt,yt;
+		
+		//Remeber parameters
+		this.rho = rho;
+		this.theta = theta;
 		
 		//Test for vertical and horizontal lines
 		if(cosa == 0) {
@@ -81,6 +89,11 @@ public class Line {
 		if(y2 >= dst.top && y2 <= dst.bottom) {
 			x2 = dst.right;
 		}
+	}
+	
+	//Rotation relative to y axis from hough parameters
+	public double rotation() {
+		return rho;
 	}
 	
 	public String toString() {
@@ -151,7 +164,7 @@ public class Line {
 				if(threshold == 1) {
 					p0 = current;
 				}
-				if(threshold == 3) {
+				if(threshold == 5) {
 					break;
 				}
 			}
@@ -171,7 +184,7 @@ public class Line {
 				threshold++;
 				
 				//Check threshold
-				if(threshold == 3) {
+				if(threshold == 5) {
 					break;
 				}
 			}

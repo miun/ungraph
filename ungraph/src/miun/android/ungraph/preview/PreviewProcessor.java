@@ -20,7 +20,7 @@ import android.net.Uri;
 import android.util.Log;
 
 public class PreviewProcessor {
-	private static final String FILENAME = "TEMPFILE;
+	private static final String FILENAME = "TEMPFILE";
 	//constants defining the image size that the bitmap should be. - Is sometimes value + 1/3*value
 	private static final int TRY_X = 1024;
 	private static final int TRY_Y = 768;
@@ -75,8 +75,14 @@ public class PreviewProcessor {
 	
 	private Uri saveBitmapToTempFile(Bitmap bm) {
 		File f = new File(context.getFilesDir(),FILENAME);
-		OutputStream out = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
-		bm.compress(Bitmap.CompressFormat.PNG, 100, out);
+		OutputStream out;
+		try {
+			out = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
+			bm.compress(Bitmap.CompressFormat.PNG, 100, out);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return Uri.fromFile(f);
 	}
 	

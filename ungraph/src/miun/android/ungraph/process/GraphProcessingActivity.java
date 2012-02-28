@@ -2,6 +2,7 @@ package miun.android.ungraph.process;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import miun.android.R;
 
@@ -43,14 +44,19 @@ public class GraphProcessingActivity extends Activity {
 		}*/
 		
 		
-        /*
-        //InputStream is = getContentResolver().openInputStream(getIntent().getData());
-		//Bitmap bm = BitmapFactory.decodeStream(is);
+        
+        InputStream is = null;
+		try {
+			is = getContentResolver().openInputStream(getIntent().getData());
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		Bitmap bm = BitmapFactory.decodeStream(is);
         Uri uri = getIntent().getData();
         Mat mat = null;
         try {
 			mat = Utils.bitmapToMat(MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri));
-			Log.d(TAG, "Height: "+mat.height());
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -60,12 +66,11 @@ public class GraphProcessingActivity extends Activity {
 		}
 		ImageView imageView = (ImageView) findViewById(R.id.bitmapview);
 		if(mat != null){
-			Bitmap b = Bitmap.createBitmap(200,100,Bitmap.Config.ARGB_8888);
+			Bitmap b = Bitmap.createBitmap(mat.width(),mat.height(),Bitmap.Config.ARGB_8888);
 			Utils.matToBitmap(mat, b);
-			Log.d(TAG, "Height bm: " + b.getHeight());
 			imageView.setImageBitmap(b);
 		}else {
 			imageView.setImageURI(getIntent().getData());
-		}*/
+		}
     }
 }
