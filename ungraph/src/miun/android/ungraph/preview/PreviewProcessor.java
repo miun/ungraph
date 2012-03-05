@@ -2,7 +2,6 @@ package miun.android.ungraph.preview;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,9 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.YuvImage;
 import android.net.Uri;
-import android.util.Log;
 
 public class PreviewProcessor {
 	private static final String FILENAME = "TEMPFILE";
@@ -67,27 +64,18 @@ public class PreviewProcessor {
 	 * This constructor will be used to manage a the input from the camerapreview as matrix 
 	 * @param pic
 	 */
-	public PreviewProcessor(byte[] pic, Activity context){
-		this.context = context;
-		BitmapFactory.Options oScale = new BitmapFactory.Options();
-		oScale.inJustDecodeBounds = true;
-		BitmapFactory.decodeByteArray(pic, 0, pic.length, oScale);
-		BitmapFactory.Options oImage = new BitmapFactory.Options();
-		oImage.inSampleSize = calculateInSampleSize(oScale.outWidth, oScale.outHeight);
-		Bitmap bm = BitmapFactory.decodeByteArray(pic, 0, pic.length, oImage);
-		this.startIntent(this.saveBitmapToTempFile(bm));
-	}
-	
 	public PreviewProcessor(Mat mat, Activity context) {
-		float factor = TRY_X / mat.width();
-		Mat m = new Mat();
+		this.context = context;
+		float factor = (float)TRY_X / mat.width();
+		int test = mat.width();
+		
 		Bitmap bm = Bitmap.createBitmap(Math.round(mat.width()*factor),
 				Math.round(mat.height()*factor),
-				Bitmap.Config.RGB_565);
+				Bitmap.Config.ARGB_8888);
 		Utils.matToBitmap(mat, bm);
-		saveBitmapToTempFile(bm);
+		this.startIntent(this.saveBitmapToTempFile(bm));
 	}
-	
+
 	private int calculateInSampleSize(int x, int y) {
     	int result = 1;
     	while (x>TRY_X || y>TRY_Y){

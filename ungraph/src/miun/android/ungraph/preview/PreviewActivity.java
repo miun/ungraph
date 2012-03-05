@@ -1,25 +1,28 @@
 package miun.android.ungraph.preview;
 import java.io.FileNotFoundException;
 
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+
 import miun.android.R;
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
-
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.ImageFormat;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
+import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class PreviewActivity extends Activity implements CameraButtonReceiver,PictureCallback {
@@ -34,45 +37,35 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 	private CameraPreview mPreview;
 	private CameraButton mCameraButton;
 	
+	private boolean bAbortFollowingCallbacks = false;
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
 		Log.i(TAG, "Instantiated new " + this.getClass());
-		
         super.onCreate(savedInstanceState);
-
-        //TEST//
-        Mat img;
-        Point point;
-        img = Mat.zeros(200,200,CvType.CV_8UC1);
         
-/*        Line line = new Line(0,50,200,100);
-        LineIterator it = new LineIterator(line,false);
-        while(it.hasNext()) point = (Point)it.next();
-
-        line = new Line(200,50,0,100);
-        it = new LineIterator(line,false);
-        while(it.hasNext()) point = (Point)it.next();
-
-        line = new Line(50,0,100,200);
-        it = new LineIterator(line,false);
-        while(it.hasNext()) point = (Point)it.next();
-
-        line = new Line(50,200,100,0);
-        it = new LineIterator(line,false);
-        while(it.hasNext()) point = (Point)it.next();*/
-
-        //return;
-        
-        //setContentView(R.layout.main);
-        setContentView(new CameraPreview(this));
+        //setContentView(new CameraPreview(this));
         
     	//Connect camera preview
-/*        mPreview = new CameraPreview(this);
-    	FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
-    	preview.addView(mPreview);*/
+        mPreview = new CameraPreview(this);
+        setContentView(miun.android.R.layout.main);
+        FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
+    	preview.addView(mPreview);
+
+    	//Init camera button
+        mCameraButton = new CameraButton(this,this);
+        mCameraButton.registerCameraButton();
     }
     
-    /*
+    @Override
+	protected void onDestroy() {
+    	mCameraButton.unregisterCameraButton();
+    	mPreview = null;
+    	
+		super.onDestroy();
+	}
+
+	/*
      * Is called when an other activity passes a result to this activity
      * (non-Javadoc)
      * @see android.app.Activity#onActivityResult(int, int, android.content.Intent)
@@ -170,7 +163,7 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
         return false;
     }
     
-    public void startFileChooserIntent(){
+    public void startFileChooserIntent() {
     	Intent intent = new Intent();
     	intent.setType("image/*");
     	intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -180,9 +173,24 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 
 	public void onCameraButtonPressed() {
 		mPreview.takePicture(this);
+		Log.v(TAG,"Camerabutton pressed");
 	}
 
-	public void onPictureTaken(byte[] arg0, Camera arg1) {
-		System.out.println(arg0.length);
+	public void onPictureTaken(byte[] data, Camera cam) {
+		if(data != null && bAbortFollowingCallbacks == false) {
+			//Abort following callbacks
+			bAbortFollowingCallbacks = true;
+			
+			//Create YUV image from data
+			Parameters param = cam.getParameters();
+			Size size = param.getPictureSize();
+			
+			//Create a matrix for YUV420
+			Mat mYuv = new Mat(size.height + size.height / 2, size.width, CvType.CV_8UC1);
+	        mYuv.put(0, 0, data);
+
+			//Forward matrix data
+			new PreviewProcessor(mYuv,this);
+		}
 	}
 }

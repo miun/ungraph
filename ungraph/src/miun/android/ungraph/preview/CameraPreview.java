@@ -12,7 +12,6 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.view.SurfaceHolder;
 
 public class CameraPreview extends CameraPreviewBase {
@@ -58,7 +57,6 @@ public class CameraPreview extends CameraPreviewBase {
 	    
 	    Imgproc.Canny(mHorzSubmat, cannyMat, 40, 100);
 		Imgproc.dilate(cannyMat,dilateMat,kernel);
-//		Imgproc.HoughLines(dilateMat, houghlines, 1, 3.1415926 / 180, 150);
 		Imgproc.HoughLinesP(dilateMat, houghlines, 1, Math.PI / 180, 150, Math.round(dilateMat.cols() * 0.5),10);
 		
 		lines = new Line[houghlines.rows()];
@@ -77,7 +75,6 @@ public class CameraPreview extends CameraPreviewBase {
 	    
 	    Imgproc.Canny(mVertSubmat, cannyMat, 40, 100);
 		Imgproc.dilate(cannyMat,dilateMat,kernel);
-//		Imgproc.HoughLines(dilateMat, houghlines, 1, 3.1415926 / 180, 150);
 		Imgproc.HoughLinesP(dilateMat, houghlines, 1, Math.PI / 180, 150, Math.round(dilateMat.cols() * 0.5),10);
 		
 		lines = new Line[houghlines.rows()];
@@ -98,31 +95,6 @@ public class CameraPreview extends CameraPreviewBase {
 
 		//Return bitmap
 		return Utils.matToBitmap(mRgba, mBmp);
-    }
-
-    @Override
-    public void run() {
-        super.run();
-
-        synchronized (this) {
-            // Explicitly deallocate Mats
-            if (mYuv != null)
-                mYuv.release();
-            if (mRgba != null)
-                mRgba.release();
-            if (mGraySubmat != null)
-                mGraySubmat.release();
-            if (mHorzSubmat != null)
-            	mHorzSubmat.release();
-            if (mVertSubmat != null)
-            	mVertSubmat.release();
-  
-            mYuv = null;
-            mRgba = null;
-            mGraySubmat = null;
-            mHorzSubmat = null;
-            mVertSubmat = null;
-        }
     }
 
     @Override
