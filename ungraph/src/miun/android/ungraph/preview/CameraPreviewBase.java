@@ -8,13 +8,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHolder.Callback,Runnable,PreviewCallback {
+public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHolder.Callback,PreviewCallback {
     private static final String TAG = "Ungraph.CameraPreviewBase";
 
     private Camera              mCamera;
@@ -23,7 +24,6 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     private int                 mFrameHeight;
     private byte[]              mFrame;
     protected Bitmap			mBmp;
-    private boolean             mThreadRun;
 
     public CameraPreviewBase(Context context) {
         super(context);
@@ -88,7 +88,9 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
         mCamera = Camera.open();
         mCamera.setPreviewCallbackWithBuffer(this);
         
-        //(new Thread(this)).start();
+        Parameters cp = mCamera.getParameters();
+        cp.setPictureFormat(ImageFormat.NV21);
+        mCamera.setParameters(cp);
     }
 
     public void onPreviewFrame(byte[] data, Camera camera) {
@@ -108,25 +110,18 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 		}
 
         mCamera.addCallbackBuffer(mFrame);
-
-/*        synchronized (CameraPreviewBase.this) {
-        	//mFrame = data;
-            CameraPreviewBase.this.notify();
-        }*/
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.i(TAG, "surfaceDestroyed");
-        mThreadRun = false;
+
         if (mCamera != null) {
-//            synchronized (this) {
-                mCamera.stopPreview();
-                mCamera.setPreviewCallback(null);
-                mCamera.release();
-                mCamera = null;
-                
-                if(mBmp != null) mBmp = null;
-//            }
+            mCamera.stopPreview();
+            mCamera.setPreviewCallback(null);
+            mCamera.release();
+            mCamera = null;
+            
+            if(mBmp != null) mBmp = null;
         }
     }
 
@@ -134,35 +129,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     
     public void takePicture(PictureCallback callback) {
     	if(mCamera != null) {
-    		mCamera.takePicture(null,callback,null);
+    		mCamera.takePicture(null,callback,callback,callback);
     	}
-    }
-
-    public void run() {
-    	Boolean result;
-    	
-    	mThreadRun = true;
-        Log.i(TAG, "Starting processing thread");
-        while (mThreadRun) {
-        	synchronized (this) {
-                try {
-                    this.wait();
-                    result = processFrame(mFrame);
-                    //result = false;
-                    mCamera.addCallbackBuffer(mFrame);
-                } catch (InterruptedException e) {
-                	result = false;
-                    e.printStackTrace();
-                }
-        	}
-
-            if (result) {
-                Canvas canvas = mHolder.lockCanvas();
-                if (canvas != null) {
-                    canvas.drawBitmap(mBmp, (canvas.getWidth() - getFrameWidth()) / 2, (canvas.getHeight() - getFrameHeight()) / 2, null);
-                    mHolder.unlockCanvasAndPost(canvas);
-                }
-            }
-        }
     }
 }
