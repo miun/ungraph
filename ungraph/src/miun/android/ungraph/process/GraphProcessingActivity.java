@@ -5,18 +5,24 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import miun.android.R;
+import miun.android.ungraph.help.HelpActivity;
+import miun.android.ungraph.preview.PreviewActivity;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ImageView;
 
 public class GraphProcessingActivity extends Activity {
@@ -42,17 +48,7 @@ public class GraphProcessingActivity extends Activity {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
-		
-		
-        
-        InputStream is = null;
-		try {
-			is = getContentResolver().openInputStream(getIntent().getData());
-		} catch (FileNotFoundException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		Bitmap bm = BitmapFactory.decodeStream(is);
+
         Uri uri = getIntent().getData();
         Mat mat = null;
         try {
@@ -72,5 +68,42 @@ public class GraphProcessingActivity extends Activity {
 		}else {
 			imageView.setImageURI(getIntent().getData());
 		}
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) { 
+    	super.onCreateOptionsMenu(menu); 
+    	getMenuInflater().inflate(R.menu.processingactivity_optionsmenu, menu);
+    	return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+    	super.onOptionsItemSelected(item);
+        switch(item.getItemId()){
+        case R.id.next:
+        	this.goBackToPreviewActivity();
+        	return true;
+        case R.id.help:
+            startActivity(new Intent(this, HelpActivity.class));
+            return true;
+        }
+        return false;
+    }
+    
+    /*
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+		case KeyEvent.KEYCODE_BACK:
+			this.goBackToPreviewActivity();
+			return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }*/
+    
+    private void goBackToPreviewActivity() {
+		this.startActivity(new Intent(this, PreviewActivity.class));
+		this.finish();
     }
 }
