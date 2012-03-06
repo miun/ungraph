@@ -28,6 +28,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.Config;
 import android.net.Uri;
 import android.os.Bundle;
@@ -47,6 +48,10 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 
 	private Mat mMat;
 	private Bitmap mBmp;
+	private Bitmap mDisplayBmp;
+	
+	private Line horz = null,vert = null;
+	
 	private ImageView mImageView;
 	private Map<Integer,Double> data;
 	
@@ -65,7 +70,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
         	//Convert color space if necessary
         	if(!mBmp.getConfig().equals(Config.ARGB_8888)) {
         		//Convert to ARGB_8888
-        		Bitmap temp = mBmp.copy(Config.ARGB_8888,false);
+        		Bitmap temp = mBmp.copy(Config.ARGB_8888,true);
         		mBmp = temp;
         		temp = null;
         	}
@@ -73,10 +78,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
         	//Convert to Matrix
         	mMat = Utils.bitmapToMat(mBmp);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         catch (Exception e) {
@@ -105,7 +108,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	
     	Mat houghlines = new Mat();
         Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(4,4));
-        Line horzLine = null,vertLine = null;
         Size size;
     	
 	    //Create gray picture
@@ -128,8 +130,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		if(houghlines.rows() > 0) {
 			//Create line object
 			double x[] = houghlines.get(0,0);
-			horzLine = new Line(Math.round(x[0]),Math.round(x[1] + mMat.height() * 0.45),Math.round(x[2]),Math.round(x[3] + mMat.height() * 0.45));
-			Core.line(mMat,horzLine.begin(),horzLine.end(), new Scalar(255,0,0,255),2);
+			horz = new Line(Math.round(x[0]),Math.round(x[1] + mMat.height() * 0.45),Math.round(x[2]),Math.round(x[3] + mMat.height() * 0.45));
+			Core.line(mMat,horz.begin(),horz.end(), new Scalar(255,0,0,255),2);
 		}
 
 	    //Detect vertical line;
@@ -145,8 +147,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		if(houghlines.rows() > 0) {
 			//Create line object
 			double x[] = houghlines.get(0,0);
-			vertLine = new Line(Math.round(x[0] + mMat.width() * 0.45),Math.round(x[1]),Math.round(x[2] + mMat.width() * 0.45),Math.round(x[3]));
-			Core.line(mMat,vertLine.begin(),vertLine.end(), new Scalar(255,0,0,255),2);
+			vert = new Line(Math.round(x[0] + mMat.width() * 0.45),Math.round(x[1]),Math.round(x[2] + mMat.width() * 0.45),Math.round(x[3]));
+			Core.line(mMat,vert.begin(),vert.end(), new Scalar(255,0,0,255),2);
 		}
 
 		//Draw raster
@@ -155,47 +157,69 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		Core.line(mMat,new Point(size.width * 0.45,0),new Point(size.width * 0.45,size.height),new Scalar(0,255,0,255));
 		Core.line(mMat,new Point(size.width * 0.55,0),new Point(size.width * 0.55,size.height),new Scalar(0,255,0,255));
 		
-		//Show detected lines
-    	Utils.matToBitmap(mMat, mBmp);
-    	mImageView.setImageBitmap(mBmp);
-    	
     	//Allow to free memory
     	cannyMat.release(); cannyMat = null;
     	dilateMat.release(); dilateMat = null;
     	horzSubmat.release(); horzSubmat = null;
     	vertSubmat.release(); vertSubmat = null;
     	
-    	//Detect graph line
-    	if(horzLine != null && vertLine != null) {
-    		detectGraph(graySubmat,horzLine,vertLine);
+		//Create display bitmap
+    	mDisplayBmp = Bitmap.createBitmap(mMat.width(),mMat.height(),Config.ARGB_8888);
+		Utils.matToBitmap(mMat, mDisplayBmp);
+    	mImageView.setImageBitmap(mDisplayBmp);
+
+    	//Show detected lines
+    	//refreshDisplay(null);
+		
+		//Detect graph line
+    	if(horz != null && vert != null) {
+    		detectGraph(graySubmat);
+        	mMat.release(); mMat = null;
     	}
     	else {
     		showDialog(DIALOG_NO_GRAPH);
+        	mMat.release(); mMat = null;
     	}
     }
     
-    private boolean detectGraph(Mat grayMat,Line horz,Line vert) {
+    private boolean detectGraph(Mat grayMat) {
     	Mat roiMat,canny;
     	Rect roi;
     	ArrayList<Integer> pixels;
     	int nLast = -1;
     	int nBest;
     	int nAxisPos;
+    	byte[] red = new byte[4];
+    	
+    	red[0] = 0;
+    	red[1] = (byte)255;
+    	red[2] = (byte)255;
+    	red[3] = (byte)255;
+    	
+    	//No lines available
+    	if(horz == null || vert == null) return false;
     	
     	//Set ROI to the place where the graph should be
     	roi = new Rect((int)Math.round(Math.min(horz.begin().x,horz.end().x)),(int)Math.round(Math.min(vert.begin().y,vert.end().y)),(int)Math.round(Math.abs(horz.end().x - horz.begin().x)),(int)Math.round(Math.abs(vert.end().y - vert.begin().y)));
+
+    	//Move lines to rectangle boundaries
+    	horz = new Line((int)Math.round(horz.begin().x - roi.x),(int)Math.round(horz.begin().y - roi.y),(int)Math.round(horz.end().x - roi.x),(int)Math.round(horz.end().y - roi.y));
+    	vert = new Line((int)Math.round(vert.begin().x - roi.x),(int)Math.round(vert.begin().y - roi.y),(int)Math.round(vert.end().x - roi.x),(int)Math.round(vert.end().y - roi.y));
     	
-    	int temp = grayMat.cols();
-    	temp = grayMat.rows();
+    	//Correct line direction (must go from left to right!)
+    	if(horz.begin().x > horz.end().x) {
+    		horz = new Line((int)Math.round(horz.end().x),(int)Math.round(horz.end().y),(int)Math.round(horz.begin().x),(int)Math.round(horz.begin().y));
+    	}
     	
-    	temp = roi.x;
+    	// !!!!! x is y and width is height for matrices !!!!! (because matrix definition begins with column followed by row
+    	int temp = roi.x;
     	roi.x = roi.y;
     	roi.y = temp;
     	temp = roi.width;
     	roi.width = roi.height;
     	roi.height = temp;
     	
-    	
+    	//Create matrix of graph region
     	roiMat = new Mat(grayMat,roi);
     	
     	//Canny pic
@@ -209,39 +233,48 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     		//If there are any pixels
     		if(!pixels.isEmpty()) {
 	    		//Calculate current x axis position
-	    		nAxisPos = (int)Math.round(horz.begin().y + (horz.end().y - horz.begin().y) / (horz.end().x - horz.begin().x) * i);
+	    		//nAxisPos = (int)Math.round(horz.begin().y + (horz.end().y - horz.begin().y) / (horz.end().x - horz.begin().x) * i);
+	    		nAxisPos = (int)Math.round(horz.begin().y + (horz.end().y - horz.begin().y) / horz.end().x * i);
 	    		
-	    		if(nLast == -1) {
-	    			//First pixel => search the one that is farthest away from axis
-	    			nBest = 0;
-	    			for(int j = 1; j < pixels.size(); j++) {
-	    				if(Math.abs(pixels.get(j) - nAxisPos) > Math.abs(pixels.get(nBest) - nAxisPos)) {
-	    					nBest = j;
-	    				}
-	    			}
+    			//First pixel => search the one that is farthest away from axis
+    			nBest = 0;
+    			for(int j = 1; j < pixels.size(); j++) {
+    				if(Math.abs(pixels.get(j) - nAxisPos) > Math.abs(pixels.get(nBest) - nAxisPos)) {
+    					nBest = j;
+    				}
+    			}
 	    			
-	    			nLast = nBest;
-	    		}
-	    		else {
-	    			//Every other pixel => search the one that is nearest to the last one
-	    			//and not on the x axis
-	    			nBest = 0;
-	    			for(int j = 1; j < pixels.size(); j++) {
-	    				if(Math.abs(pixels.get(j) - pixels.get(nLast)) < Math.abs(pixels.get(nBest) - pixels.get(nBest))) {
-	    					nBest = j;
-	    				}
-	    			}
-	    			
-	    			nLast = nBest;
-	    		}
+    			//Remember decision
+    			nLast = pixels.get(nBest);
 	    		
 	    		//Add point to list
-	    		//TODO include the axis position in the formula !!!
 	    		data.put(i,(2.0 / canny.height() * nLast) - 1.0);
+	    		
+	    		//Draw new point
+	    		mMat.put(nLast + roi.x, i + roi.y, red);
+	    		mMat.put(nLast + roi.x + 1, i + roi.y, red);
+	    		mMat.put(nLast + roi.x, i + roi.y + 1, red);
+	    		mMat.put(nLast + roi.x - 1, i + roi.y, red);
+	    		mMat.put(nLast + roi.x, i + roi.y - 1, red);
     		}
     	}
     	
+    	//Display graph
+    	Utils.matToBitmap(mMat, mDisplayBmp);
     	return true;
+    }
+    
+    private void setDataSelector(float pos) {
+    	int nPos;
+    	int nWidth;
+    	
+    	//Calculate bitmap width
+    	nWidth = mDisplayBmp.getHeight() / mImageView.getHeight() * mDisplayBmp.getWidth();
+    	
+    	//Calculate pixel position in bitmap 
+    	nPos = 
+    	
+    	//nPos = 
     }
     
     //Find column pixels
@@ -314,15 +347,11 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		//Get touch event
 		if(event.getAction() == MotionEvent.ACTION_MOVE) {
 			float x = event.getX();
-			float y = event.getY(); //Not used at the moment
+			//float y = event.getY(); //Not used at the moment
 			
-			updateDataPoint(x,0,0);
+			setDataSelector(x);
 		}
 		
 		return true;
-	}
-	
-	private void updateDataPoint(float x,float min,float max) {
-		Log.v(TAG,new Float(x).toString()  + " - " + new Float(min).toString()  + " - " + new Float(max).toString());
 	}
 }
