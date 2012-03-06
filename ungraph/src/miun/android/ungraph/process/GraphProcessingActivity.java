@@ -2,6 +2,7 @@ package miun.android.ungraph.process;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,8 +26,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.InputDevice;
-import android.view.InputDevice.MotionRange;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -38,7 +37,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	private Mat mMat;
 	private Bitmap mBmp;
 	private ImageView mImageView;
-	private Map<Double,Double> data;
+	private Map<Integer,Double> data;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -83,7 +82,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		}
 		
 		//Create data map
-		data = new HashMap<Double,Double>();
+		data = new HashMap<Integer,Double>();
 		
 		//Analyse image
 		analyseImage();
@@ -100,9 +99,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	
 	    //Create gray picture
         graySubmat = new Mat(mMat.rows(),mMat.cols(),CvType.CV_8UC1);
-        
-        int test = mMat.type();
-        
         Imgproc.cvtColor(mMat, graySubmat, Imgproc.COLOR_RGBA2GRAY); 
 
         //Find horizontal lines
@@ -160,19 +156,96 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	
     	//Detect graph line
     	if(horzLine != null && vertLine != null) {
-    		detectGraph(horzLine,vertLine);
+    		detectGraph(graySubmat,horzLine,vertLine);
     	}
     	else {
     		//TODO show no graph found dialog
     	}
     }
     
-    private boolean detectGraph(Line horz,Line vert) {
-    	Mat canny;
+    private boolean detectGraph(Mat grayMat,Line horz,Line vert) {
+    	Mat roiMat,canny;
+    	Rect roi;
+    	ArrayList<Integer> pixels;
+    	int nLast = -1;
+    	int nBest;
+    	int nAxisPos;
+    	
+    	//Set ROI to the place where the graph should be
+    	roi = new Rect((int)Math.round(Math.min(horz.begin().x,horz.end().x)),(int)Math.round(Math.min(vert.begin().y,vert.end().y)),(int)Math.round(Math.abs(horz.end().x - horz.begin().x)),(int)Math.round(Math.abs(vert.end().y - vert.begin().y)));
+    	
+    	int temp = grayMat.cols();
+    	temp = grayMat.rows();
+    	
+    	temp = roi.x;
+    	roi.x = roi.y;
+    	roi.y = temp;
+    	temp = roi.width;
+    	roi.width = roi.height;
+    	roi.height = temp;
     	
     	
-    	data.put(0.2,0.3);
-    	return false;
+    	roiMat = new Mat(grayMat,roi);
+    	
+    	//Canny pic
+    	canny = new Mat();
+    	Imgproc.Canny(roiMat, canny, 40,100);
+    	roiMat.release(); roiMat = null;
+    	
+    	for(int i = 0; i < canny.width(); i++) {
+    		pixels = getColPixels(canny,i);
+    		
+    		//If there are any pixels
+    		if(!pixels.isEmpty()) {
+	    		//Calculate current x axis position
+	    		nAxisPos = (int)Math.round(horz.begin().y + (horz.end().y - horz.begin().y) / (horz.end().x - horz.begin().x) * i);
+	    		
+	    		if(nLast == -1) {
+	    			//First pixel => search the one that is farthest away from axis
+	    			nBest = 0;
+	    			for(int j = 1; j < pixels.size(); j++) {
+	    				if(Math.abs(pixels.get(j) - nAxisPos) > Math.abs(pixels.get(nBest) - nAxisPos)) {
+	    					nBest = j;
+	    				}
+	    			}
+	    			
+	    			nLast = nBest;
+	    		}
+	    		else {
+	    			//Every other pixel => search the one that is nearest to the last one
+	    			//and not on the x axis
+	    			nBest = 0;
+	    			for(int j = 1; j < pixels.size(); j++) {
+	    				if(Math.abs(pixels.get(j) - pixels.get(nLast)) < Math.abs(pixels.get(nBest) - pixels.get(nBest))) {
+	    					nBest = j;
+	    				}
+	    			}
+	    			
+	    			nLast = nBest;
+	    		}
+	    		
+	    		//Add point to list
+	    		//TODO include the axis position in the formula !!!
+	    		data.put(i,(2.0 / canny.height() * nLast) - 1.0);
+    		}
+    	}
+    	
+    	return true;
+    }
+    
+    //Find column pixels
+    private ArrayList<Integer> getColPixels(Mat mat,int col) {
+    	ArrayList<Integer> list = new ArrayList<Integer>();
+    	double[] temp;
+
+    	for(int i = 0; i < mat.height(); i++) {
+    		temp = mat.get(i, col);
+    		if(temp[0] != 0) {
+    			list.add(i);
+    		}
+    	}
+    	
+    	return list;
     }
 
 	public boolean onTouch(View view, MotionEvent event) {
@@ -182,7 +255,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		//Get touch event
 		if(event.getAction() == MotionEvent.ACTION_MOVE) {
 			float x = event.getX();
-			float y = event.getY();
+			float y = event.getY(); //Not used at the moment
 			
 			updateDataPoint(x,0,0);
 		}
