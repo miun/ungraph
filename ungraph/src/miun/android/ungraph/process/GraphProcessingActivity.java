@@ -7,12 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import miun.android.R;
-<<<<<<< HEAD
 import miun.android.ungraph.help.HelpActivity;
 import miun.android.ungraph.preview.PreviewActivity;
-=======
 import miun.android.ungraph.Line;
->>>>>>> 6721e12b0b001166c003d77e819667a1eee4560c
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -32,15 +29,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-<<<<<<< HEAD
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-=======
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
->>>>>>> 6721e12b0b001166c003d77e819667a1eee4560c
 import android.widget.ImageView;
 
 public class GraphProcessingActivity extends Activity implements OnTouchListener {
@@ -259,7 +253,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	
     	return list;
     }
-<<<<<<< HEAD
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) { 
@@ -297,7 +290,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		this.startActivity(new Intent(this, PreviewActivity.class));
 		this.finish();
     }
-=======
 
 	public boolean onTouch(View view, MotionEvent event) {
 		//InputDevice dev = InputDevice.getDevice(InputDevice.SOURCE_CLASS_POINTER);
@@ -317,5 +309,4 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	private void updateDataPoint(float x,float min,float max) {
 		Log.v(TAG,new Float(x).toString()  + " - " + new Float(min).toString()  + " - " + new Float(max).toString());
 	}
->>>>>>> 6721e12b0b001166c003d77e819667a1eee4560c
 }
