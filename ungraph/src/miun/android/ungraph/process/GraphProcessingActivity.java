@@ -313,6 +313,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     		
     		Canvas canvas = new Canvas(mDisplayBmp);
     		canvas.drawLine(selectorPos, 0, selectorPos, canvas.getHeight(), p);
+    		//canvas.
     	}
     }
     
@@ -401,7 +402,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 
 	public boolean onTouch(View view, MotionEvent event) {
 		//Get touch event
-		if(event.getAction() == MotionEvent.ACTION_MOVE) {
+		if(event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_DOWN) {
 			float x = event.getX();
 			//float y = event.getY(); //Not used at the moment
 			
