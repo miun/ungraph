@@ -11,6 +11,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -61,6 +62,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
             }
 
             params.setPreviewSize(getFrameWidth(), getFrameHeight());
+            params.setPictureSize(640,480);
             mCamera.setParameters(params);
 
             //Create buffer
@@ -96,7 +98,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     public void onPreviewFrame(byte[] data, Camera camera) {
     	if(mFrame != data) {
     		//Something went wrong
-    		assert(false);
+    		return; //assert(false);
     	}
     	
         boolean result = processFrame(mFrame);
@@ -129,7 +131,12 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     
     public void takePicture(PictureCallback callback) {
     	if(mCamera != null) {
-    		mCamera.takePicture(null,callback,callback,callback);
+    		Size size = mCamera.getParameters().getPictureSize();
+    		int format = mCamera.getParameters().getPictureFormat();
+    		
+    		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
+    		mCamera.addCallbackBuffer(mFrame);
+    		mCamera.takePicture(null,null,callback,null);
     	}
     }
 }
