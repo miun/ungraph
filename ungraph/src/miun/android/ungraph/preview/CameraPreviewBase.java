@@ -93,7 +93,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
         mCamera.setPreviewCallbackWithBuffer(this);
         
         Parameters cp = mCamera.getParameters();
-        cp.setPictureFormat(ImageFormat.JPEG);
+        cp.setPictureFormat(ImageFormat.NV21);
         mCamera.setParameters(cp);
     }
 
@@ -135,7 +135,6 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     	if(mCamera != null) {
     		Size size = mCamera.getParameters().getPictureSize();
     		int format = mCamera.getParameters().getPictureFormat();
-    		
     		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
     		mCamera.addCallbackBuffer(mFrame);
     		mCamera.takePicture(null,null,callback,null);

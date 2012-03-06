@@ -70,7 +70,6 @@ public class PreviewProcessor {
 	public PreviewProcessor(Mat mat, Activity context) {
 		this.context = context;
 		float factor = 1;//(float)TRY_X / mat.width();
-		int test = mat.width();
 		
 		Bitmap bm = Bitmap.createBitmap(Math.round(mat.width()*factor),
 				Math.round(mat.height()*factor),

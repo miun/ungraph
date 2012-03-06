@@ -22,6 +22,10 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -39,6 +43,7 @@ import android.widget.ImageView;
 
 public class GraphProcessingActivity extends Activity implements OnTouchListener {
 	private static final String TAG = "GraphProcessingActivity";
+	private static final int DIALOG_NO_GRAPH = 0;
 
 	private Mat mMat;
 	private Bitmap mBmp;
@@ -165,7 +170,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     		detectGraph(graySubmat,horzLine,vertLine);
     	}
     	else {
-    		//TODO show no graph found dialog
+    		showDialog(DIALOG_NO_GRAPH);
     	}
     }
     
@@ -275,16 +280,27 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
         return false;
     }
     
-    /*
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch (keyCode) {
-		case KeyEvent.KEYCODE_BACK:
-			this.goBackToPreviewActivity();
-			return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }*/
+    protected Dialog onCreateDialog(int id) {
+    	Dialog dialog;
+    	AlertDialog.Builder builder;
+    	switch (id) {
+    	case DIALOG_NO_GRAPH:
+    		builder = new AlertDialog.Builder(this);
+    		builder.setMessage(R.string.no_graph)
+    			.setCancelable(false)
+    			.setNeutralButton(android.R.string.ok, new OnClickListener() {
+					public void onClick(DialogInterface arg0, int arg1) {
+						goBackToPreviewActivity();
+					}
+				});
+    		dialog = builder.create();
+    		break;
+    	default:
+    		dialog = null;
+    	}
+    	return dialog;
+    }
     
     private void goBackToPreviewActivity() {
 		this.startActivity(new Intent(this, PreviewActivity.class));

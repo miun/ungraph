@@ -19,4 +19,5 @@
 	<string name="menuitem_help">Help</string>
 	<string name="menuitem_load">Load picture from Filesystem</string>
 	<string name="menuitem_next">Take/load next picture</string>
+	<string name="no_graph">Could not recognize a graph to interpret in this picture.</string>
 </resources>
