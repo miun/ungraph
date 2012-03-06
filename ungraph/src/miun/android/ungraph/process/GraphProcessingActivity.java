@@ -21,8 +21,10 @@ import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.Config;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -159,7 +161,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 
 		//Detect graph line
     	if(horz != null && vert != null) {
-    		detectGraph(graySubmat);
+    		detectGraph(graySubmat,horz,vert);
         	mMat.release(); mMat = null;
     	}
     	else {
@@ -168,7 +170,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	}
     }
     
-    private boolean detectGraph(Mat grayMat) {
+    private boolean detectGraph(Mat grayMat,Line horz,Line vert) {
     	Mat roiMat,canny;
     	Rect roi;
     	ArrayList<Integer> pixels;
@@ -257,17 +259,44 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	return true;
     }
     
-    private void setDataSelector(float pos) {
-    	int nPos;
-    	int nWidth;
-    	
+    private void setDataSelector(double pos) {
     	//Calculate bitmap width
-    	nWidth = mDisplayBmp.getHeight() / mImageView.getHeight() * mDisplayBmp.getWidth();
+    	double width = mDisplayBmp.getHeight() / mImageView.getHeight() * mDisplayBmp.getWidth();
     	
-    	//Calculate pixel position in bitmap 
-    	nPos = 
+    	//Calculate pixel position of bitmap 
+    	double start = ((double)mImageView.getWidth() - width) / 2;
     	
-    	//nPos = 
+    	//Calculate width and pos. of x axis
+    	double xw = (double)(horz.end().x - horz.begin().x) / mDisplayBmp.getWidth() * width;
+    	double xs = (double)horz.begin().x / mDisplayBmp.getWidth() * width + start;
+    	
+    	//Check if selector is inside x axis
+    	if(pos < xs) {
+    		//Clip to left border
+    		pos = xs;
+    	}
+    	else if(pos > xw + xs) {
+    		//Clip to right border
+    		pos = xw + xs;
+    	}
+    	
+    	//Move to left border
+    	pos -= xs;
+    	
+    	//Calc selector pos.
+    	int selectorPos = (int)Math.round(pos / xw * (horz.end().x - horz.begin().x));
+    	
+    	//Get selector data
+    	Double selectorData = data.get(new Integer(selectorPos));
+    	
+    	//Print selector if available
+    	if(selectorData != null) {
+    		Paint p = new Paint();
+    		p.setColor(Color.RED);
+    		
+    		Canvas canvas = new Canvas(mDisplayBmp);
+    		canvas.drawLine(selectorPos, 0, selectorPos, canvas.getHeight(), p);
+    	}
     }
     
     //Find column pixels
@@ -286,9 +315,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     }
 
 	public boolean onTouch(View view, MotionEvent event) {
-		//InputDevice dev = InputDevice.getDevice(InputDevice.SOURCE_CLASS_POINTER);
-		//MotionRange range = dev.getMotionRange(InputDevice.MOTION_RANGE_X);
-
 		//Get touch event
 		if(event.getAction() == MotionEvent.ACTION_MOVE) {
 			float x = event.getX();
