@@ -5,12 +5,14 @@ import java.util.List;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.ShutterCallback;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -133,10 +135,10 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     	if(mCamera != null) {
     		Size size = mCamera.getParameters().getPictureSize();
     		int format = mCamera.getParameters().getPictureFormat();
-    		
     		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
     		mCamera.addCallbackBuffer(mFrame);
     		mCamera.takePicture(null,null,callback,null);
     	}
     }
+    
 }

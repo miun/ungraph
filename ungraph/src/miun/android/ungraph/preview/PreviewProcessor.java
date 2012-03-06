@@ -11,6 +11,9 @@ import miun.android.ungraph.process.GraphProcessingActivity;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.content.Context;
@@ -52,17 +55,21 @@ public class PreviewProcessor {
 			oImage.inSampleSize = calculateInSampleSize(oScale.outWidth, oScale.outHeight);
 			is = context.getContentResolver().openInputStream(source);
 			bm = BitmapFactory.decodeStream(is,null,oImage);
+			try {
+				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			this.startIntent(this.saveBitmapToTempFile(bm));
 	}
 	
 	/**
 	 * This constructor will be used to manage a the input from the camerapreview as matrix 
-	 * @param mat
+	 * @param pic
 	 */
 	public PreviewProcessor(Mat mat, Activity context) {
 		this.context = context;
 		float factor = 1;//(float)TRY_X / mat.width();
-		int test = mat.width();
 		
 		Bitmap bm = Bitmap.createBitmap(Math.round(mat.width()*factor),
 				Math.round(mat.height()*factor),
@@ -87,8 +94,12 @@ public class PreviewProcessor {
 		try {
 			out = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
 			bm.compress(Bitmap.CompressFormat.PNG, 100, out);
+			bm.recycle();
+			bm = null;
+			out.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return Uri.fromFile(f);

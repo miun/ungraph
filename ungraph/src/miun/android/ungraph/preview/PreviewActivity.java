@@ -18,6 +18,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.YuvImage;
 import android.graphics.Canvas;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -27,10 +29,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-public class PreviewActivity extends Activity implements CameraButtonReceiver,PictureCallback {
+public class PreviewActivity extends Activity implements CameraButtonReceiver,PictureCallback, OnTouchListener {
 	private static final String TAG = "PreviewActivity";
 	
 	//onActivityResult constants
@@ -53,6 +58,7 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
         
     	//Connect camera preview
         mPreview = new CameraPreview(this);
+        mPreview.setOnTouchListener(this);
         setContentView(miun.android.R.layout.main);
         FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
     	preview.addView(mPreview);
@@ -186,7 +192,7 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 			//Create YUV image from data
 			Parameters param = cam.getParameters();
 			Size size = param.getPictureSize();
-			
+
 			//Create a matrix for YUV420
 			Mat mYuv = new Mat(size.height + size.height / 2, size.width, CvType.CV_8UC1);
 	        mYuv.put(0, 0, data);
@@ -196,5 +202,14 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 			//Forward matrix data
 			new PreviewProcessor(mRgb,this);
 		}
+	}
+
+	public boolean onTouch(View v, MotionEvent event) {
+		if(event.getAction() == MotionEvent.ACTION_UP) {
+			mPreview.takePicture(this);
+			Log.v(TAG,"Picture taken by screen touch");
+		}
+		
+		return true;
 	}
 }

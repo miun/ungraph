@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import miun.android.R;
+import miun.android.ungraph.help.HelpActivity;
+import miun.android.ungraph.preview.PreviewActivity;
 import miun.android.ungraph.Line;
 
 import org.opencv.android.Utils;
@@ -20,6 +22,12 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -29,6 +37,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -36,6 +47,9 @@ import android.widget.ImageView;
 
 public class GraphProcessingActivity extends Activity implements OnTouchListener {
 	private static final String TAG = "GraphProcessingActivity";
+	private static final int DIALOG_NO_GRAPH = 0;
+	private static final int DIALOG_PROGRESS = 1;
+	private static final int DIALOG_ERROR = 2;
 
 	private Mat mMat;
 	private Bitmap mBmp;
@@ -45,6 +59,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	
 	private ImageView mImageView;
 	private Map<Integer,Double> data;
+	private ProgressDialog mProgressDialog;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -53,7 +68,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	
         super.onCreate(savedInstanceState);
         setContentView(R.layout.graphprocessing);
-	
+
         Uri uri = getIntent().getData();
         try {
         	mBmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
@@ -91,6 +106,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		
 		//Analyse image
 		analyseImage();
+		
+		mProgressDialog = null;
    }
     
     private void analyseImage() {
@@ -165,8 +182,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
         	mMat.release(); mMat = null;
     	}
     	else {
+    		showDialog(DIALOG_NO_GRAPH);
         	mMat.release(); mMat = null;
-    		//TODO show no graph found dialog
     	}
     }
     
@@ -313,6 +330,74 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	
     	return list;
     }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) { 
+    	super.onCreateOptionsMenu(menu); 
+    	getMenuInflater().inflate(R.menu.processingactivity_optionsmenu, menu);
+    	return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+    	super.onOptionsItemSelected(item);
+        switch(item.getItemId()){
+        case R.id.next:
+        	this.goBackToPreviewActivity();
+        	return true;
+        case R.id.help:
+            startActivity(new Intent(this, HelpActivity.class));
+            return true;
+        }
+        return false;
+    }
+    
+    @Override
+    protected Dialog onCreateDialog(int id) {
+    	Dialog dialog;
+    	AlertDialog.Builder builder;
+    	switch (id) {
+    	case DIALOG_NO_GRAPH:
+    		builder = new AlertDialog.Builder(this);
+    		builder.setMessage(R.string.no_graph)
+    			.setCancelable(false)
+    			.setNeutralButton(android.R.string.ok, new OnClickListener() {
+					public void onClick(DialogInterface arg0, int arg1) {
+						goBackToPreviewActivity();
+					}
+				});
+    		dialog = builder.create();
+    		break;
+    	case DIALOG_PROGRESS:
+    		mProgressDialog = new ProgressDialog(this);
+    		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    		mProgressDialog.setCancelable(false);
+    		mProgressDialog.setTitle(R.string.progressdialog_title);
+    		mProgressDialog.setMessage(getResources().getString(R.string.progressdialog_message));
+    		dialog = mProgressDialog;
+    		break;
+    	case DIALOG_ERROR:
+    		builder = new AlertDialog.Builder(this);
+    		builder.setMessage(R.string.internal_error)
+			.setCancelable(false)
+			.setNeutralButton(android.R.string.ok, new OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					goBackToPreviewActivity();
+				}
+			});
+    		dialog = builder.create(); 
+    		break;
+    	
+    	default:
+    		dialog = null;
+    	}
+    	return dialog;
+    }
+    
+    private void goBackToPreviewActivity() {
+		this.startActivity(new Intent(this, PreviewActivity.class));
+		this.finish();
+    }
 
 	public boolean onTouch(View view, MotionEvent event) {
 		//Get touch event
@@ -327,6 +412,13 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	}
 	
 	private void processStatus(int percent) {
-		//TODO Hier prozente machen
+		if (mProgressDialog!=null){
+			if(percent>=100){
+				dismissDialog(DIALOG_PROGRESS);
+			}
+		}else {
+			showDialog(DIALOG_PROGRESS);
+		}
+		mProgressDialog.setProgress(percent);
 	}
 }
