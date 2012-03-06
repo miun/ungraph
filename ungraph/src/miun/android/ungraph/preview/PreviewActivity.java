@@ -12,6 +12,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -184,13 +186,17 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 			//Create YUV image from data
 			Parameters param = cam.getParameters();
 			Size size = param.getPictureSize();
+			int x = data.length;
+
+			Bitmap bm = BitmapFactory.decodeByteArray(data, 0, data.length, null);
+			
 			
 			//Create a matrix for YUV420
 			Mat mYuv = new Mat(size.height + size.height / 2, size.width, CvType.CV_8UC1);
 	        mYuv.put(0, 0, data);
 
 			//Forward matrix data
-			new PreviewProcessor(mYuv,this);
+			//new PreviewProcessor(mYuv,this);
 		}
 	}
 }

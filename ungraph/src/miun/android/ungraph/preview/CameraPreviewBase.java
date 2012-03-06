@@ -5,12 +5,14 @@ import java.util.List;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
+import android.hardware.Camera.ShutterCallback;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -89,7 +91,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
         mCamera.setPreviewCallbackWithBuffer(this);
         
         Parameters cp = mCamera.getParameters();
-        cp.setPictureFormat(ImageFormat.NV21);
+        cp.setPictureFormat(ImageFormat.JPEG);
         mCamera.setParameters(cp);
     }
 
@@ -129,7 +131,36 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     
     public void takePicture(PictureCallback callback) {
     	if(mCamera != null) {
-    		mCamera.takePicture(null,callback,callback,callback);
+    		mCamera.takePicture(shutterCallback,rawCallback,postView,jpeg);
     	}
     }
+    
+    ShutterCallback shutterCallback = new ShutterCallback() {
+		public void onShutter() {
+			Log.d(TAG, "onShutter'd");
+		}
+	};
+
+	/** Handles data for raw picture */
+	PictureCallback rawCallback = new PictureCallback() {
+		public void onPictureTaken(byte[] data, Camera camera) {
+			Log.d(TAG, "onPictureTaken - raw");
+		}
+	};
+	
+	/** Handles data for raw picture */
+	PictureCallback postView = new PictureCallback() {
+		public void onPictureTaken(byte[] data, Camera camera) {
+			Log.d(TAG, "onPictureTaken - POSTVIEW");
+		}
+	};
+	
+	/** Handles data for raw picture */
+	PictureCallback jpeg = new PictureCallback() {
+		public void onPictureTaken(byte[] data, Camera camera) {
+			Log.d(TAG, "onPictureTaken - JPEG");
+		}
+	};
+	
+
 }
