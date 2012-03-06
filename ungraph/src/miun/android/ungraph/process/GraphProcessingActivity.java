@@ -24,6 +24,7 @@ import org.opencv.imgproc.Imgproc;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -45,6 +46,8 @@ import android.widget.ImageView;
 public class GraphProcessingActivity extends Activity implements OnTouchListener {
 	private static final String TAG = "GraphProcessingActivity";
 	private static final int DIALOG_NO_GRAPH = 0;
+	private static final int DIALOG_PROGRESS = 1;
+	private static final int DIALOG_ERROR = 2;
 
 	private Mat mMat;
 	private Bitmap mBmp;
@@ -54,6 +57,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	
 	private ImageView mImageView;
 	private Map<Integer,Double> data;
+	private ProgressDialog mProgressDialog;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -100,6 +104,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		
 		//Analyse image
 		analyseImage();
+		
+		mProgressDialog = null;
    }
     
     private void analyseImage() {
@@ -276,7 +282,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	nWidth = mDisplayBmp.getHeight() / mImageView.getHeight() * mDisplayBmp.getWidth();
     	
     	//Calculate pixel position in bitmap 
-    	nPos = 
+    	nPos = 0;
     	
     	//nPos = 
     }
@@ -333,6 +339,26 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 				});
     		dialog = builder.create();
     		break;
+    	case DIALOG_PROGRESS:
+    		mProgressDialog = new ProgressDialog(this);
+    		mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    		mProgressDialog.setCancelable(false);
+    		mProgressDialog.setTitle(R.string.progressdialog_title);
+    		mProgressDialog.setMessage(getResources().getString(R.string.progressdialog_message));
+    		dialog = mProgressDialog;
+    		break;
+    	case DIALOG_ERROR:
+    		builder = new AlertDialog.Builder(this);
+    		builder.setMessage(R.string.internal_error)
+			.setCancelable(false)
+			.setNeutralButton(android.R.string.ok, new OnClickListener() {
+				public void onClick(DialogInterface arg0, int arg1) {
+					goBackToPreviewActivity();
+				}
+			});
+    		dialog = builder.create(); 
+    		break;
+    	
     	default:
     		dialog = null;
     	}
@@ -360,6 +386,13 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	}
 	
 	private void processStatus(int percent) {
-		//TODO Hier prozente machen
+		if (mProgressDialog!=null){
+			if(percent>=100){
+				dismissDialog(DIALOG_PROGRESS);
+			}
+		}else {
+			showDialog(DIALOG_PROGRESS);
+		}
+		mProgressDialog.setProgress(percent);
 	}
 }

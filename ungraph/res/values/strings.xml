@@ -20,4 +20,7 @@
 	<string name="menuitem_load">Load picture from Filesystem</string>
 	<string name="menuitem_next">Take/load next picture</string>
 	<string name="no_graph">Could not recognize a graph to interpret in this picture.</string>
+	<string name="progressdialog_title">Loading</string>
+	<string name="progressdialog_message">Determining lines...</string>
+	<string name="internal_error">(-: Guru meditation :-)</string>
 </resources>
