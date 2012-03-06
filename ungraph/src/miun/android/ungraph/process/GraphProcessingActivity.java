@@ -157,9 +157,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		Utils.matToBitmap(mMat, mDisplayBmp);
     	mImageView.setImageBitmap(mDisplayBmp);
 
-    	//Show detected lines
-    	//refreshDisplay(null);
-		
 		//Detect graph line
     	if(horz != null && vert != null) {
     		detectGraph(graySubmat);
@@ -179,6 +176,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	int nBest;
     	int nAxisPos;
     	byte[] red = new byte[4];
+    	int lastPercent = -1;
     	
     	red[0] = 0;
     	red[1] = (byte)255;
@@ -218,6 +216,12 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	
     	for(int i = 0; i < canny.width(); i++) {
     		pixels = getColPixels(canny,i);
+    		
+    		//Update progress bar if necessary
+    		if(Math.round(100.0 / canny.width() * i) != lastPercent) {
+    			lastPercent = (int)Math.round(100.0 / canny.width() * i);
+    			processStatus(lastPercent);
+    		}
     		
     		//If there are any pixels
     		if(!pixels.isEmpty()) {
@@ -294,5 +298,9 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		}
 		
 		return true;
+	}
+	
+	private void processStatus(int percent) {
+		//TODO Hier prozente machen
 	}
 }
