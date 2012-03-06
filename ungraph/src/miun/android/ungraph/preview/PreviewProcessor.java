@@ -69,21 +69,11 @@ public class PreviewProcessor {
 	 */
 	public PreviewProcessor(Mat mat, Activity context) {
 		this.context = context;
-		float factor = (float)TRY_X / mat.width();
-		Mat m = new Mat();
-		double[] t = mat.get(0, 0);
-		double[] t10 = mat.get(1, 0);
-		double[] t20 = mat.get(2, 0);
-		Imgproc.cvtColor(mat, m, Imgproc.COLOR_YUV420sp2RGB,4);
-		double[] t1 = m.get(0, 0);
-		Imgproc.resize(m, mat, new Size(), factor, factor);
-		double[] t3 = mat.get(0, 0);
-		int f = mat.width();
-		int f1 = mat.height();
-		int f2 = m.width();
-		int f3 = m.height();
-		Bitmap bm = Bitmap.createBitmap(mat.width(),
-				mat.height(),
+		float factor = 1;//(float)TRY_X / mat.width();
+		int test = mat.width();
+		
+		Bitmap bm = Bitmap.createBitmap(Math.round(mat.width()*factor),
+				Math.round(mat.height()*factor),
 				Bitmap.Config.ARGB_8888);
 		Utils.matToBitmap(mat, bm);
 		this.startIntent(this.saveBitmapToTempFile(bm));

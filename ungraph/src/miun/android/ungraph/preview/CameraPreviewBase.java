@@ -13,6 +13,7 @@ import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.ShutterCallback;
+import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -63,6 +64,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
             }
 
             params.setPreviewSize(getFrameWidth(), getFrameHeight());
+            params.setPictureSize(640,480);
             mCamera.setParameters(params);
 
             //Create buffer
@@ -98,7 +100,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     public void onPreviewFrame(byte[] data, Camera camera) {
     	if(mFrame != data) {
     		//Something went wrong
-    		assert(false);
+    		return; //assert(false);
     	}
     	
         boolean result = processFrame(mFrame);
@@ -131,36 +133,13 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     
     public void takePicture(PictureCallback callback) {
     	if(mCamera != null) {
-    		mCamera.takePicture(shutterCallback,rawCallback,postView,jpeg);
+    		Size size = mCamera.getParameters().getPictureSize();
+    		int format = mCamera.getParameters().getPictureFormat();
+    		
+    		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
+    		mCamera.addCallbackBuffer(mFrame);
+    		mCamera.takePicture(null,null,callback,null);
     	}
     }
     
-    ShutterCallback shutterCallback = new ShutterCallback() {
-		public void onShutter() {
-			Log.d(TAG, "onShutter'd");
-		}
-	};
-
-	/** Handles data for raw picture */
-	PictureCallback rawCallback = new PictureCallback() {
-		public void onPictureTaken(byte[] data, Camera camera) {
-			Log.d(TAG, "onPictureTaken - raw");
-		}
-	};
-	
-	/** Handles data for raw picture */
-	PictureCallback postView = new PictureCallback() {
-		public void onPictureTaken(byte[] data, Camera camera) {
-			Log.d(TAG, "onPictureTaken - POSTVIEW");
-		}
-	};
-	
-	/** Handles data for raw picture */
-	PictureCallback jpeg = new PictureCallback() {
-		public void onPictureTaken(byte[] data, Camera camera) {
-			Log.d(TAG, "onPictureTaken - JPEG");
-		}
-	};
-	
-
 }

@@ -1,12 +1,16 @@
 package miun.android.ungraph.preview;
 import java.io.FileNotFoundException;
-
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
+import java.util.List;
 
 import miun.android.R;
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
+
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -16,6 +20,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.YuvImage;
+import android.graphics.Canvas;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
@@ -180,9 +185,6 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 
 	public void onPictureTaken(byte[] data, Camera cam) {
 		if(data != null && bAbortFollowingCallbacks == false) {
-			//Abort following callbacks
-			bAbortFollowingCallbacks = true;
-			
 			//Create YUV image from data
 			Parameters param = cam.getParameters();
 			Size size = param.getPictureSize();
@@ -194,9 +196,11 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 			//Create a matrix for YUV420
 			Mat mYuv = new Mat(size.height + size.height / 2, size.width, CvType.CV_8UC1);
 	        mYuv.put(0, 0, data);
-
+	        Mat mRgb = new Mat();
+	        Imgproc.cvtColor(mYuv,mRgb,Imgproc.COLOR_YUV420sp2RGB,4);
+	        
 			//Forward matrix data
-			//new PreviewProcessor(mYuv,this);
+			new PreviewProcessor(mRgb,this);
 		}
 	}
 }
