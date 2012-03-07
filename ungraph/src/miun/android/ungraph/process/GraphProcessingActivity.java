@@ -42,6 +42,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 public class GraphProcessingActivity extends Activity implements OnTouchListener {
 	private static final String TAG = "GraphProcessingActivity";
@@ -54,8 +55,11 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	private Bitmap mDisplayBmp;
 	
 	private Line horz = null,vert = null;
+	private int mSelectorPosOld = -1;
 	
 	private ImageView mImageView;
+	private TextView mCurrentValue;
+	
 	private Map<Integer,Double> data;
 	private ProgressDialog mProgressDialog;
 	
@@ -89,6 +93,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		//Get image view
         mImageView = (ImageView) findViewById(R.id.bitmapview);
         mImageView.setOnTouchListener(this);
+        mCurrentValue = (TextView) findViewById(R.id.current_value);
 		
 		//Show picture
 		if(mMat == null || mMat.width() <= 0 || mMat.height() <= 0) {
@@ -105,10 +110,10 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     
    private void setDataSelector(double pos) {
     	//Calculate bitmap width
-    	double width = mDisplayBmp.getHeight() / mImageView.getHeight() * mDisplayBmp.getWidth();
+    	double width = mDisplayBmp.getHeight() / mImageView.getBottom() * mDisplayBmp.getWidth();
     	
     	//Calculate pixel position of bitmap 
-    	double start = ((double)mImageView.getWidth() - width) / 2;
+    	double start = ((double)mImageView.getRight() - width) / 2;
     	
     	//Calculate width and pos. of x axis
     	double xw = (double)(horz.end().x - horz.begin().x) / mDisplayBmp.getWidth() * width;
@@ -136,11 +141,22 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	//Print selector if available
     	if(selectorData != null) {
     		Paint p = new Paint();
-    		p.setColor(Color.RED);
+    		p.setColor(Color.YELLOW);
+    		
+    		//Update current value
+    		mCurrentValue.setText("y:" + selectorPos + " - " + (2.0 / (horz.end().x - horz.begin().x) * selectorPos + 1) + "\nx:" + new Double((double)Math.round(selectorData * 100) / 100).toString());
     		
     		Canvas canvas = new Canvas(mDisplayBmp);
-    		canvas.drawLine(selectorPos, 0, selectorPos, canvas.getHeight(), p);
-    		//canvas.
+    		
+    		//Recover old image part
+    		if(mSelectorPosOld != -1) {
+    			canvas.drawBitmap(mBmp,new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),null);
+    		}
+    		
+    		//Draw new selector-line
+    		canvas.drawLine(selectorPos, 0, selectorPos + 1, canvas.getHeight(), p);
+    		mSelectorPosOld = selectorPos;
+    		mImageView.invalidate();
     	}
     }
     
@@ -240,14 +256,20 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	}
 	
 	private void processStatus(int percent) {
-		if (mProgressDialog!=null){
-			if(percent>=100){
-				dismissDialog(DIALOG_PROGRESS);
+		if(percent == -1) { //Internal error received
+			showDialog(DIALOG_ERROR);
+		} else if (percent == -2) { //Incompatible image error received
+			showDialog(DIALOG_NO_GRAPH);
+		} else {	//No Error received show Progressbar
+			if (mProgressDialog!=null){
+				if(percent>=100){
+					dismissDialog(DIALOG_PROGRESS);
+				}
+			}else {
+				showDialog(DIALOG_PROGRESS);
 			}
-		}else {
-			showDialog(DIALOG_PROGRESS);
+			mProgressDialog.setProgress(percent);
 		}
-		mProgressDialog.setProgress(percent);
 	}
 	
 	private class Async extends AsyncTask<Void, Integer, Void> {
@@ -314,18 +336,17 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	    	horzSubmat.release(); horzSubmat = null;
 	    	vertSubmat.release(); vertSubmat = null;
 	    	
-			//Create display bitmap
-	    	mDisplayBmp = Bitmap.createBitmap(mMat.width(),mMat.height(),Config.ARGB_8888);
-			Utils.matToBitmap(mMat, mDisplayBmp);
-	    	//mImageView.setImageBitmap(mDisplayBmp);
-
 			//Detect graph line
 	    	if(horz != null && vert != null) {
 	    		detectGraph(graySubmat,horz,vert);
+
+				//Create display bitmap
+				Utils.matToBitmap(mMat, mBmp);
 	        	mMat.release(); mMat = null;
+				mDisplayBmp = mBmp.copy(Config.ARGB_8888,true);
 	    	}
 	    	else {
-	    		showDialog(DIALOG_NO_GRAPH);
+	    		publishProgress(-2);
 	        	mMat.release(); mMat = null;
 	    	}
 			return null;
@@ -397,7 +418,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	    		//If there are any pixels
 	    		if(!pixels.isEmpty()) {
 		    		//Calculate current x axis position
-		    		//nAxisPos = (int)Math.round(horz.begin().y + (horz.end().y - horz.begin().y) / (horz.end().x - horz.begin().x) * i);
 		    		nAxisPos = (int)Math.round(horz.begin().y + (horz.end().y - horz.begin().y) / horz.end().x * i);
 		    		
 	    			//First pixel => search the one that is farthest away from axis
@@ -412,7 +432,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	    			nLast = pixels.get(nBest);
 		    		
 		    		//Add point to list
-		    		data.put(i,(2.0 / canny.height() * nLast) - 1.0);
+		    		data.put(i,-1 * ((2.0 / canny.height() * nLast) - 1.0));
 		    		
 		    		//Draw new point
 		    		mMat.put(nLast + roi.x, i + roi.y, red);
