@@ -67,12 +67,17 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
         mCameraButton = new CameraButton(this,this);
         mCameraButton.registerCameraButton();
     }
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mPreview.releaseCam();
+	}
     
     @Override
 	protected void onDestroy() {
     	mCameraButton.unregisterCameraButton();
     	mPreview = null;
-    	
 		super.onDestroy();
 	}
 

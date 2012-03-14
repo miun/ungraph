@@ -140,6 +140,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     		
     		Canvas canvas = new Canvas(mDisplayBmp);
     		canvas.drawLine(selectorPos, 0, selectorPos, canvas.getHeight(), p);
+    		mImageView.invalidate();
     	}
     }
     
@@ -239,14 +240,20 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	}
 	
 	private void processStatus(int percent) {
-		if (mProgressDialog!=null){
-			if(percent>=100){
-				dismissDialog(DIALOG_PROGRESS);
+		if(percent == -1) { //Internal error received
+			showDialog(DIALOG_ERROR);
+		} else if (percent == -2) { //Incompatible image error received
+			showDialog(DIALOG_NO_GRAPH);
+		} else {	//No Error received show Progressbar
+			if (mProgressDialog!=null){
+				if(percent>=100){
+					dismissDialog(DIALOG_PROGRESS);
+				}
+			}else {
+				showDialog(DIALOG_PROGRESS);
 			}
-		}else {
-			showDialog(DIALOG_PROGRESS);
+			mProgressDialog.setProgress(percent);
 		}
-		mProgressDialog.setProgress(percent);
 	}
 	
 	private class Async extends AsyncTask<Void, Integer, Void> {
@@ -324,7 +331,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 	        	mMat.release(); mMat = null;
 	    	}
 	    	else {
-	    		showDialog(DIALOG_NO_GRAPH);
+	    		//Show Dialog that graph was received
+	    		publishProgress(-2);
 	        	mMat.release(); mMat = null;
 	    	}
 			return null;

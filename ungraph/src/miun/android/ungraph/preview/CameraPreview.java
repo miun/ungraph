@@ -40,7 +40,7 @@ public class CameraPreview extends CameraPreviewBase {
     }
 
     @Override
-    protected boolean processFrame(byte[] data) {
+    protected Mat processFrame(byte[] data) {
         Mat cannyMat,dilateMat;
     	Mat houghlines = new Mat();
         Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT,new Size(4,4));
@@ -94,7 +94,7 @@ public class CameraPreview extends CameraPreviewBase {
 		Core.line(mRgba,new Point(size.width * 0.55,0),new Point(size.width * 0.55,size.height),new Scalar(0,255,0,255));
 
 		//Return bitmap
-		return Utils.matToBitmap(mRgba, mBmp);
+		return mRgba;
     }
 
     @Override

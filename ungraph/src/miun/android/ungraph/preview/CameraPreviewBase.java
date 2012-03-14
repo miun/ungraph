@@ -3,17 +3,15 @@ package miun.android.ungraph.preview;
 import java.io.IOException;
 import java.util.List;
 
+import org.opencv.core.Mat;
+
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
-import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
-import android.hardware.Camera.ShutterCallback;
-import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -27,6 +25,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     private int                 mFrameHeight;
     private byte[]              mFrame;
     protected Bitmap			mBmp;
+    protected Mat				mlastPreview;
 
     public CameraPreviewBase(Context context) {
         super(context);
@@ -87,14 +86,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 
     public void surfaceCreated(SurfaceHolder holder) {
         Log.i(TAG, "surfaceCreated");
-        
-        //Open camera and set preview callback class
-        mCamera = Camera.open();
-        mCamera.setPreviewCallbackWithBuffer(this);
-        
-        Parameters cp = mCamera.getParameters();
-        cp.setPictureFormat(ImageFormat.NV21);
-        mCamera.setParameters(cp);
+        openCam();
     }
 
     public void onPreviewFrame(byte[] data, Camera camera) {
@@ -103,9 +95,9 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     		return; //assert(false);
     	}
     	
-        boolean result = processFrame(mFrame);
+        mlastPreview = processFrame(mFrame);
 
-        if (result) {
+        if (mlastPreview!=null) {
 		    Canvas canvas = mHolder.lockCanvas();
 		    if (canvas != null) {
 		        canvas.drawBitmap(mBmp, (canvas.getWidth() - getFrameWidth()) / 2, (canvas.getHeight() - getFrameHeight()) / 2, null);
@@ -118,8 +110,50 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.i(TAG, "surfaceDestroyed");
+        releaseCam();
+    }
 
-        if (mCamera != null) {
+    protected abstract Mat processFrame(byte[] data);
+    
+    public void takePicture(PreviewActivity context) {
+    	if (mlastPreview!=null) new PreviewProcessor(mlastPreview, context);
+    	/*if(mCamera != null) {
+    		Size size = mCamera.getParameters().getPreviewSize();
+    		int format = mCamera.getParameters().getPictureFormat();
+    		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
+    		mCamera.addCallbackBuffer(mFrame);
+    		mCamera.takePicture(new ShutterCallback() {
+				public void onShutter() {
+					Log.d(TAG, "SHUTTER");
+				}
+			},new PictureCallback() {
+				public void onPictureTaken(byte[] data, Camera camera) {
+					Log.d(TAG, "RAW");
+				}
+			}, new PictureCallback() {
+				public void onPictureTaken(byte[] data, Camera camera) {
+					Log.d(TAG, "POSTVIEW");
+				}
+			}, new PictureCallback() {
+				public void onPictureTaken(byte[] data, Camera camera) {
+					Log.d(TAG, "JPEG");
+				}
+			});
+    	}*/
+    }
+    
+    public void openCam() {
+    	//Open camera and set preview callback class
+        mCamera = Camera.open();
+        mCamera.setPreviewCallbackWithBuffer(this);
+        
+        Parameters cp = mCamera.getParameters();
+        cp.setPictureFormat(ImageFormat.NV21);
+        mCamera.setParameters(cp);
+    }
+    
+    public void releaseCam() {
+    	if (mCamera != null) {
             mCamera.stopPreview();
             mCamera.setPreviewCallback(null);
             mCamera.release();
@@ -127,18 +161,6 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
             
             if(mBmp != null) mBmp = null;
         }
-    }
-
-    protected abstract boolean processFrame(byte[] data);
-    
-    public void takePicture(PictureCallback callback) {
-    	if(mCamera != null) {
-    		Size size = mCamera.getParameters().getPictureSize();
-    		int format = mCamera.getParameters().getPictureFormat();
-    		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
-    		mCamera.addCallbackBuffer(mFrame);
-    		mCamera.takePicture(null,null,callback,null);
-    	}
     }
     
 }
