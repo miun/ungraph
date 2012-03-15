@@ -3,6 +3,10 @@ package miun.android.ungraph.preview;
 import java.io.IOException;
 import java.util.List;
 
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -80,21 +84,16 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
             if(mBmp != null) mBmp.recycle();
             mBmp = Bitmap.createBitmap(mFrameWidth,mFrameHeight,Bitmap.Config.ARGB_8888);
             
-            //Start preview
+            //Start preview and autofocus
             mCamera.startPreview();
+            mCamera.autoFocus(null);
         }
     }
+    
 
     public void surfaceCreated(SurfaceHolder holder) {
         Log.i(TAG, "surfaceCreated");
-        
-        //Open camera and set preview callback class
-        mCamera = Camera.open();
-        mCamera.setPreviewCallbackWithBuffer(this);
-        
-        Parameters cp = mCamera.getParameters();
-        cp.setPictureFormat(ImageFormat.NV21);
-        mCamera.setParameters(cp);
+        opencam();
     }
 
     public void onPreviewFrame(byte[] data, Camera camera) {
@@ -114,23 +113,18 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 		}
 
         mCamera.addCallbackBuffer(mFrame);
+        mCamera.autoFocus(null);
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.i(TAG, "surfaceDestroyed");
-
-        if (mCamera != null) {
-            mCamera.stopPreview();
-            mCamera.setPreviewCallback(null);
-            mCamera.release();
-            mCamera = null;
-            
-            if(mBmp != null) mBmp = null;
-        }
+        releasecam();
+        if(mBmp != null) mBmp = null;
     }
 
     protected abstract boolean processFrame(byte[] data);
     
+    ////////////////////////////////Currently unused
     public void takePicture(PictureCallback callback) {
     	if(mCamera != null) {
     		Size size = mCamera.getParameters().getPictureSize();
@@ -139,6 +133,34 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     		mCamera.addCallbackBuffer(mFrame);
     		mCamera.takePicture(null,null,callback,null);
     	}
+    }
+    ////////////////////////////////    
+    
+    public Mat getPreview() {
+    	Mat mYuv = new Mat(getFrameHeight() + getFrameHeight() / 2, getFrameWidth(), CvType.CV_8UC1);
+    	mYuv.put(0, 0, mFrame);
+    	Mat mRgba = new Mat();
+    	Imgproc.cvtColor(mYuv, mRgba, Imgproc.COLOR_YUV420sp2RGB, 4);
+    	return mRgba;
+    }
+    
+    public void opencam() {
+    	//Open camera and set preview callback class
+    	 mCamera = Camera.open();
+         mCamera.setPreviewCallbackWithBuffer(this);
+         
+         Parameters cp = mCamera.getParameters();
+         cp.setPictureFormat(ImageFormat.NV21);
+         mCamera.setParameters(cp);
+    }
+    
+    public void releasecam() {
+    	if (mCamera != null) {
+            mCamera.stopPreview();
+            mCamera.setPreviewCallback(null);
+            mCamera.release();
+            mCamera = null;
+        }
     }
     
 }

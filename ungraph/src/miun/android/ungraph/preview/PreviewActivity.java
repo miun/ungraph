@@ -31,6 +31,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -59,6 +60,7 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
     	//Connect camera preview
         mPreview = new CameraPreview(this);
         mPreview.setOnTouchListener(this);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(miun.android.R.layout.main);
         FrameLayout preview = (FrameLayout) findViewById(miun.android.R.id.camera_preview);
     	preview.addView(mPreview);
@@ -67,12 +69,17 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
         mCameraButton = new CameraButton(this,this);
         mCameraButton.registerCameraButton();
     }
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mPreview.releasecam();
+	}
     
     @Override
 	protected void onDestroy() {
     	mCameraButton.unregisterCameraButton();
     	mPreview = null;
-    	
 		super.onDestroy();
 	}
 
@@ -183,10 +190,12 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
     }
 
 	public void onCameraButtonPressed() {
-		mPreview.takePicture(this);
+		//mPreview.takePicture(this);
+		new PreviewProcessor(mPreview.getPreview(), this);
 		Log.v(TAG,"Camerabutton pressed");
 	}
 
+	/////////This is unused in the actual version
 	public void onPictureTaken(byte[] data, Camera cam) {
 		if(data != null && bAbortFollowingCallbacks == false) {
 			//Create YUV image from data
@@ -203,10 +212,12 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 			new PreviewProcessor(mRgb,this);
 		}
 	}
-
+	//////////////////////////////////
+	
 	public boolean onTouch(View v, MotionEvent event) {
 		if(event.getAction() == MotionEvent.ACTION_UP) {
-			mPreview.takePicture(this);
+			//mPreview.takePicture(this);
+			new PreviewProcessor(mPreview.getPreview(), this);
 			Log.v(TAG,"Picture taken by screen touch");
 		}
 		

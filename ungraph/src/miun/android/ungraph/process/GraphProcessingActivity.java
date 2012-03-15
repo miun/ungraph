@@ -41,8 +41,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+
 
 public class GraphProcessingActivity extends Activity implements OnTouchListener {
 	private static final String TAG = "GraphProcessingActivity";
@@ -69,6 +72,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	Log.i(TAG, "Instantiated new " + this.getClass());
     	
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.graphprocessing);
 
         Uri uri = getIntent().getData();
@@ -80,6 +84,7 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
         		//Convert to ARGB_8888
         		Bitmap temp = mBmp.copy(Config.ARGB_8888,true);
         		mBmp = temp;
+        		temp.recycle();
         		temp = null;
         	}
         	
@@ -130,34 +135,33 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     	}
     	
     	//Move to left border
-    	pos -= xs;
+    	//pos -= xs;
     	
     	//Calc selector pos.
     	int selectorPos = (int)Math.round(pos / xw * (horz.end().x - horz.begin().x));
     	
+    	int selectorPosData = (int)Math.round((pos-xs) / xw * (horz.end().x - horz.begin().x));
     	//Get selector data
-    	Double selectorData = data.get(new Integer(selectorPos));
+    	Double selectorData = data.get(new Integer(selectorPosData));
     	
     	//Print selector if available
+    	//Update current value
     	if(selectorData != null) {
-    		Paint p = new Paint();
-    		p.setColor(Color.YELLOW);
-    		
-    		//Update current value
-    		mCurrentValue.setText("y:" + selectorPos + " - " + (2.0 / (horz.end().x - horz.begin().x) * selectorPos + 1) + "\nx:" + new Double((double)Math.round(selectorData * 100) / 100).toString());
-    		
-    		Canvas canvas = new Canvas(mDisplayBmp);
-    		
-    		//Recover old image part
-    		if(mSelectorPosOld != -1) {
-    			canvas.drawBitmap(mBmp,new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),null);
-    		}
-    		
-    		//Draw new selector-line
-    		canvas.drawLine(selectorPos, 0, selectorPos + 1, canvas.getHeight(), p);
-    		mSelectorPosOld = selectorPos;
-    		mImageView.invalidate();
+    		mCurrentValue.setText("x:" + selectorPos + " - " + (2.0 / (horz.end().x - horz.begin().x) * selectorPos + 1) + "\ny:" + new Double((double)Math.round(selectorData * 100) / 100).toString());
+    	}else {
+    		mCurrentValue.setText("x:" + selectorPos + " - " + (2.0 / (horz.end().x - horz.begin().x) * selectorPos + 1) + "\ny: not specified");
     	}
+		Paint p = new Paint();
+		p.setColor(Color.YELLOW);
+		Canvas canvas = new Canvas(mDisplayBmp);
+    	//Recover old image part
+		if(mSelectorPosOld != -1) {
+			canvas.drawBitmap(mBmp,new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),null);
+		}
+		//Draw new selector-line
+		canvas.drawLine(selectorPos, 0, selectorPos + 1, canvas.getHeight(), p);
+		mSelectorPosOld = selectorPos;
+		mImageView.invalidate();
     }
     
     //Find column pixels
