@@ -9,15 +9,13 @@ import org.opencv.imgproc.Imgproc;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
-import android.hardware.Camera.ShutterCallback;
-import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -69,6 +67,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 
             params.setPreviewSize(getFrameWidth(), getFrameHeight());
             params.setPictureSize(640,480);
+            params.setPictureFormat(ImageFormat.NV21);
             mCamera.setParameters(params);
 
             //Create buffer
@@ -113,7 +112,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 		}
 
         mCamera.addCallbackBuffer(mFrame);
-        mCamera.autoFocus(null);
+        //mCamera.autoFocus(null);
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -124,18 +123,18 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 
     protected abstract boolean processFrame(byte[] data);
     
-    ////////////////////////////////Currently unused
     public void takePicture(PictureCallback callback) {
     	if(mCamera != null) {
-    		Size size = mCamera.getParameters().getPictureSize();
+    		mCamera.setPreviewCallback(null);
+    		mCamera.setOneShotPreviewCallback(null);
+    		/*Size size = mCamera.getParameters().getPictureSize();
     		int format = mCamera.getParameters().getPictureFormat();
     		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
-    		mCamera.addCallbackBuffer(mFrame);
-    		mCamera.takePicture(null,null,callback,null);
+    		mCamera.addCallbackBuffer(mFrame);*/	
+    		mCamera.takePicture(null,null,null,callback);
     	}
     }
-    ////////////////////////////////    
-    
+    //////////////////////////////// Use this when using the preview
     public Mat getPreview() {
     	Mat mYuv = new Mat(getFrameHeight() + getFrameHeight() / 2, getFrameWidth(), CvType.CV_8UC1);
     	mYuv.put(0, 0, mFrame);
@@ -143,6 +142,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     	Imgproc.cvtColor(mYuv, mRgba, Imgproc.COLOR_YUV420sp2RGB, 4);
     	return mRgba;
     }
+    ////////////////////////////////
     
     public void opencam() {
     	//Open camera and set preview callback class

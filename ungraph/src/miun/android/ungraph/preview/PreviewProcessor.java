@@ -63,6 +63,11 @@ public class PreviewProcessor {
 			this.startIntent(this.saveBitmapToTempFile(bm));
 	}
 	
+	public PreviewProcessor(Bitmap bm, Activity context) {
+		this.context = context;
+		this.startIntent(this.saveBitmapToTempFile(bm));
+	}
+	
 	/**
 	 * This constructor will be used to manage a the input from the camerapreview as matrix 
 	 * @param pic

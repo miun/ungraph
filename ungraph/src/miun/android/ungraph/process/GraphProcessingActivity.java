@@ -31,6 +31,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.MailTo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -84,7 +85,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
         		//Convert to ARGB_8888
         		Bitmap temp = mBmp.copy(Config.ARGB_8888,true);
         		mBmp = temp;
-        		temp.recycle();
         		temp = null;
         	}
         	
@@ -114,31 +114,57 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
    }
     
    private void setDataSelector(double pos) {
-    	//Calculate bitmap width
-    	double width = mDisplayBmp.getHeight() / mImageView.getBottom() * mDisplayBmp.getWidth();
-    	
-    	//Calculate pixel position of bitmap 
-    	double start = ((double)mImageView.getRight() - width) / 2;
-    	
-    	//Calculate width and pos. of x axis
-    	double xw = (double)(horz.end().x - horz.begin().x) / mDisplayBmp.getWidth() * width;
-    	double xs = (double)horz.begin().x / mDisplayBmp.getWidth() * width + start;
-    	
-    	//Check if selector is inside x axis
-    	if(pos < xs) {
-    		//Clip to left border
-    		pos = xs;
+	 //Calculate bitmap width
+   	//double width = mDisplayBmp.getHeight() / mImageView.getBottom() * mDisplayBmp.getWidth();
+	   double imageViewHeight = mImageView.getBottom();
+	   double bmHeight = mDisplayBmp.getHeight();
+	   double factor =  imageViewHeight/bmHeight;
+	   	
+	   	//Calculate pixel position of bitmap 
+	   	double border = ((double)mImageView.getRight() - mDisplayBmp.getWidth()*factor) / 2;
+	   	
+	   	//Calculate width and pos. of x axis
+	   	double xw = (double)(horz.end().x - horz.begin().x) * factor;
+	   	double xs = (double)horz.begin().x * factor + border;
+	   	
+	   	//Check if selector is inside x axis
+	   	if(pos < xs) {
+	   		//Clip to left border
+	   		pos = xs;
+	   	}
+	   	else if(pos > xw + xs) {
+	   		//Clip to right border
+	   		pos = xw + xs;
+	   	}
+	   	
+	   	int selectorPosData = (int)Math.round((pos-xs) / xw * (horz.end().x - horz.begin().x));
+    	//Get selector data
+    	Double selectorData = data.get(new Integer(selectorPosData));
+    	if(selectorData != null) {
+    		mCurrentValue.setText("x: " + selectorPosData + "\ny: " + new Double((double)Math.round(selectorData * 100) / 100).toString());
+    	}else {
+    		mCurrentValue.setText("x: " + selectorPosData + "\ny: not specified");
     	}
-    	else if(pos > xw + xs) {
-    		//Clip to right border
-    		pos = xw + xs;
-    	}
-    	
-    	//Move to left border
+	   	
+	   	Log.d(TAG, "pos: " + pos);
+	   	Paint p = new Paint();
+		p.setColor(Color.YELLOW);
+		Canvas canvas = new Canvas(mDisplayBmp);
+    	//Recover old image part
+		if(mSelectorPosOld != -1) {
+			canvas.drawBitmap(mBmp,new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),null);
+		}
+		//Draw new selector-line
+		int posToDraw = (int)((pos-border)/factor);
+		canvas.drawLine(posToDraw, 0,posToDraw, canvas.getHeight(), p);
+		mSelectorPosOld = posToDraw;
+		mImageView.invalidate();
+
+		//Move to left border
     	//pos -= xs;
-    	
+    	/*
     	//Calc selector pos.
-    	int selectorPos = (int)Math.round(pos / xw * (horz.end().x - horz.begin().x));
+    	int selectorPos = (int) (pos/factor);
     	
     	int selectorPosData = (int)Math.round((pos-xs) / xw * (horz.end().x - horz.begin().x));
     	//Get selector data
@@ -162,7 +188,8 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		canvas.drawLine(selectorPos, 0, selectorPos + 1, canvas.getHeight(), p);
 		mSelectorPosOld = selectorPos;
 		mImageView.invalidate();
-    }
+		*/
+    }	
     
     //Find column pixels
     private ArrayList<Integer> getColPixels(Mat mat,int col) {

@@ -1,12 +1,10 @@
 package miun.android.ungraph.preview;
 import java.io.FileNotFoundException;
-import java.util.List;
 
 import miun.android.R;
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
 
-import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
@@ -17,10 +15,9 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
-import android.graphics.YuvImage;
-import android.graphics.Canvas;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
@@ -31,8 +28,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnTouchListener;
+import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -47,8 +44,6 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 
 	private CameraPreview mPreview;
 	private CameraButton mCameraButton;
-	
-	private boolean bAbortFollowingCallbacks = false;
 	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -190,14 +185,18 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
     }
 
 	public void onCameraButtonPressed() {
-		//mPreview.takePicture(this);
-		new PreviewProcessor(mPreview.getPreview(), this);
+		mPreview.takePicture(this);
+		//new PreviewProcessor(mPreview.getPreview(), this);
 		Log.v(TAG,"Camerabutton pressed");
 	}
 
-	/////////This is unused in the actual version
 	public void onPictureTaken(byte[] data, Camera cam) {
-		if(data != null && bAbortFollowingCallbacks == false) {
+		if(data != null) {
+			BitmapFactory.Options opt = new BitmapFactory.Options();
+			opt.inPreferredConfig = Config.ARGB_8888;
+			
+			new PreviewProcessor(BitmapFactory.decodeByteArray(data, 0, data.length,opt), this);
+			/*
 			//Create YUV image from data
 			Parameters param = cam.getParameters();
 			Size size = param.getPictureSize();
@@ -209,15 +208,14 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 	        Imgproc.cvtColor(mYuv,mRgb,Imgproc.COLOR_YUV420sp2RGB,4);
 	        
 			//Forward matrix data
-			new PreviewProcessor(mRgb,this);
+			new PreviewProcessor(mRgb,this);*/
 		}
 	}
-	//////////////////////////////////
 	
 	public boolean onTouch(View v, MotionEvent event) {
 		if(event.getAction() == MotionEvent.ACTION_UP) {
-			//mPreview.takePicture(this);
-			new PreviewProcessor(mPreview.getPreview(), this);
+			mPreview.takePicture(this);
+			//new PreviewProcessor(mPreview.getPreview(), this);
 			Log.v(TAG,"Picture taken by screen touch");
 		}
 		
