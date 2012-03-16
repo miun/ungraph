@@ -4,24 +4,15 @@ import java.io.FileNotFoundException;
 import miun.android.R;
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.help.HelpActivity;
-
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
-import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
-import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -91,7 +82,7 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 			//User really picked something from a file browser
 			if (resultCode == Activity.RESULT_OK) {
 				try {
-					PreviewProcessor pp = new PreviewProcessor(data.getData(),this);
+					new PreviewProcessor(data.getData(),this);
 				} catch (FileNotFoundException e) {
 					// In this case no Inputstream could be read from the given Uri... Filechooser is than not supported
 					Log.d(TAG,"Couldnt work with URI....");
@@ -186,7 +177,6 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 
 	public void onCameraButtonPressed() {
 		mPreview.takePicture(this);
-		//new PreviewProcessor(mPreview.getPreview(), this);
 		Log.v(TAG,"Camerabutton pressed");
 	}
 
@@ -196,26 +186,13 @@ public class PreviewActivity extends Activity implements CameraButtonReceiver,Pi
 			opt.inPreferredConfig = Config.ARGB_8888;
 			
 			new PreviewProcessor(BitmapFactory.decodeByteArray(data, 0, data.length,opt), this);
-			/*
-			//Create YUV image from data
-			Parameters param = cam.getParameters();
-			Size size = param.getPictureSize();
-
-			//Create a matrix for YUV420
-			Mat mYuv = new Mat(size.height + size.height / 2, size.width, CvType.CV_8UC1);
-	        mYuv.put(0, 0, data);
-	        Mat mRgb = new Mat();
-	        Imgproc.cvtColor(mYuv,mRgb,Imgproc.COLOR_YUV420sp2RGB,4);
-	        
-			//Forward matrix data
-			new PreviewProcessor(mRgb,this);*/
+			
 		}
 	}
 	
 	public boolean onTouch(View v, MotionEvent event) {
 		if(event.getAction() == MotionEvent.ACTION_UP) {
 			mPreview.takePicture(this);
-			//new PreviewProcessor(mPreview.getPreview(), this);
 			Log.v(TAG,"Picture taken by screen touch");
 		}
 		

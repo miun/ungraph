@@ -3,15 +3,10 @@ package miun.android.ungraph.preview;
 import java.io.IOException;
 import java.util.List;
 
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
-import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
@@ -47,7 +42,9 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
 
     public void surfaceChanged(SurfaceHolder _holder, int format, int width, int height) {
         Log.i(TAG, "surfaceChanged");
+        
         if (mCamera != null) {
+        	mCamera.setPreviewCallbackWithBuffer(this);
             Camera.Parameters params = mCamera.getParameters();
             List<Camera.Size> sizes = params.getSupportedPreviewSizes();
             mFrameWidth = width;
@@ -89,10 +86,10 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
         }
     }
     
-
+    
     public void surfaceCreated(SurfaceHolder holder) {
         Log.i(TAG, "surfaceCreated");
-        opencam();
+        mCamera = Camera.open();
     }
 
     public void onPreviewFrame(byte[] data, Camera camera) {
@@ -125,25 +122,13 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     
     public void takePicture(PictureCallback callback) {
     	if(mCamera != null) {
+    		//reset buffers to take picture
     		mCamera.setPreviewCallback(null);
     		mCamera.setOneShotPreviewCallback(null);
-    		/*Size size = mCamera.getParameters().getPictureSize();
-    		int format = mCamera.getParameters().getPictureFormat();
-    		mFrame = new byte[size.width * size.height * ImageFormat.getBitsPerPixel(format) / 8];
-    		mCamera.addCallbackBuffer(mFrame);*/	
     		mCamera.takePicture(null,null,null,callback);
     	}
     }
-    //////////////////////////////// Use this when using the preview
-    public Mat getPreview() {
-    	Mat mYuv = new Mat(getFrameHeight() + getFrameHeight() / 2, getFrameWidth(), CvType.CV_8UC1);
-    	mYuv.put(0, 0, mFrame);
-    	Mat mRgba = new Mat();
-    	Imgproc.cvtColor(mYuv, mRgba, Imgproc.COLOR_YUV420sp2RGB, 4);
-    	return mRgba;
-    }
-    ////////////////////////////////
-    
+    /*
     public void opencam() {
     	//Open camera and set preview callback class
     	 mCamera = Camera.open();
@@ -152,7 +137,7 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
          Parameters cp = mCamera.getParameters();
          cp.setPictureFormat(ImageFormat.NV21);
          mCamera.setParameters(cp);
-    }
+    }*/
     
     public void releasecam() {
     	if (mCamera != null) {

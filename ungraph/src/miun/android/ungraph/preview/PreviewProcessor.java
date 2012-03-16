@@ -68,21 +68,6 @@ public class PreviewProcessor {
 		this.startIntent(this.saveBitmapToTempFile(bm));
 	}
 	
-	/**
-	 * This constructor will be used to manage a the input from the camerapreview as matrix 
-	 * @param pic
-	 */
-	public PreviewProcessor(Mat mat, Activity context) {
-		this.context = context;
-		float factor = 1;//(float)TRY_X / mat.width();
-		
-		Bitmap bm = Bitmap.createBitmap(Math.round(mat.width()*factor),
-				Math.round(mat.height()*factor),
-				Bitmap.Config.ARGB_8888);
-		Utils.matToBitmap(mat, bm);
-		this.startIntent(this.saveBitmapToTempFile(bm));
-	}
-
 	private int calculateInSampleSize(int x, int y) {
     	int result = 1;
     	while (x>TRY_X || y>TRY_Y){
