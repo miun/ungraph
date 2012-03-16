@@ -159,36 +159,6 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
 		canvas.drawLine(posToDraw, 0,posToDraw, canvas.getHeight(), p);
 		mSelectorPosOld = posToDraw;
 		mImageView.invalidate();
-
-		//Move to left border
-    	//pos -= xs;
-    	/*
-    	//Calc selector pos.
-    	int selectorPos = (int) (pos/factor);
-    	
-    	int selectorPosData = (int)Math.round((pos-xs) / xw * (horz.end().x - horz.begin().x));
-    	//Get selector data
-    	Double selectorData = data.get(new Integer(selectorPosData));
-    	
-    	//Print selector if available
-    	//Update current value
-    	if(selectorData != null) {
-    		mCurrentValue.setText("x:" + selectorPos + " - " + (2.0 / (horz.end().x - horz.begin().x) * selectorPos + 1) + "\ny:" + new Double((double)Math.round(selectorData * 100) / 100).toString());
-    	}else {
-    		mCurrentValue.setText("x:" + selectorPos + " - " + (2.0 / (horz.end().x - horz.begin().x) * selectorPos + 1) + "\ny: not specified");
-    	}
-		Paint p = new Paint();
-		p.setColor(Color.YELLOW);
-		Canvas canvas = new Canvas(mDisplayBmp);
-    	//Recover old image part
-		if(mSelectorPosOld != -1) {
-			canvas.drawBitmap(mBmp,new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),new android.graphics.Rect(mSelectorPosOld,0,mSelectorPosOld + 1,mBmp.getHeight()),null);
-		}
-		//Draw new selector-line
-		canvas.drawLine(selectorPos, 0, selectorPos + 1, canvas.getHeight(), p);
-		mSelectorPosOld = selectorPos;
-		mImageView.invalidate();
-		*/
     }	
     
     //Find column pixels
