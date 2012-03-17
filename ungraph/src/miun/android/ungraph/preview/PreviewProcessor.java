@@ -8,13 +8,6 @@ import java.io.OutputStream;
 
 import miun.android.ungraph.FileNotSupportedException;
 import miun.android.ungraph.process.GraphProcessingActivity;
-
-import org.opencv.android.Utils;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
-import org.opencv.imgproc.Imgproc;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;

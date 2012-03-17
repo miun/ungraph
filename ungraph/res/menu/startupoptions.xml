@@ -1,4 +1,4 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/gallery" android:title="@string/menuitem_load"></item>
-    <item android:id="@+id/help" android:title="@string/menuitem_help"></item>
+    <item android:id="@+id/gallery" android:title="@string/menuitem_load" android:icon="@android:drawable/ic_menu_gallery"></item>
+    <item android:id="@+id/help" android:title="@string/menuitem_help" android:icon="@android:drawable/ic_menu_help"></item>
 </menu>

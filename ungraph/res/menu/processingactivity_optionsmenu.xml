@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/next" android:title="@string/menuitem_next"></item>
-    <item android:id="@+id/help" android:title="@string/menuitem_help"></item>
+    <item android:id="@+id/next" android:title="@string/menuitem_next" android:icon="@android:drawable/ic_media_next"></item>
+    <item android:id="@+id/help" android:title="@string/menuitem_help" android:icon="@android:drawable/ic_menu_help"></item>
+    <item android:id="@+id/save" android:title="@string/menuitem_save" android:icon="@android:drawable/ic_menu_save"></item>
 </menu>

@@ -1,6 +1,14 @@
 package miun.android.ungraph.process;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,10 +39,10 @@ import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.net.MailTo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -177,6 +185,16 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
     }
     
     @Override
+    public boolean onPrepareOptionsMenu (Menu menu) {
+    	//Check whether sdcard is available for saving - if not disable save button
+        String state = Environment.getExternalStorageState();
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+        	menu.findItem(R.id.save).setVisible(false);
+        } 
+        return true;
+    }
+    
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) { 
     	super.onCreateOptionsMenu(menu); 
     	getMenuInflater().inflate(R.menu.processingactivity_optionsmenu, menu);
@@ -193,6 +211,22 @@ public class GraphProcessingActivity extends Activity implements OnTouchListener
         case R.id.help:
             startActivity(new Intent(this, HelpActivity.class));
             return true;
+        case R.id.save:
+        	File in = new File(getIntent().getData().getPath());
+        	File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),"ungraph");
+        	File f = new File(path, System.currentTimeMillis()+".png");
+        	path.mkdirs();
+        	try {
+				FileChannel fin = new FileInputStream(in).getChannel();
+				FileChannel fout = new FileOutputStream(f).getChannel();
+				fin.transferTo(0, fin.size(), fout);
+			} catch (Exception e) {
+				e.printStackTrace();
+				showDialog(DIALOG_ERROR);
+			}
+			//inform the Media Scanner about a new File. That makes it accessible by the gallery.
+			sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file://"+f.getAbsolutePath())));
+        	return true;
         }
         return false;
     }

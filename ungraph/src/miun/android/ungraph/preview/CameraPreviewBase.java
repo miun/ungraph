@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
-import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.util.Log;
@@ -128,16 +127,6 @@ public abstract class CameraPreviewBase extends SurfaceView implements SurfaceHo
     		mCamera.takePicture(null,null,null,callback);
     	}
     }
-    /*
-    public void opencam() {
-    	//Open camera and set preview callback class
-    	 mCamera = Camera.open();
-         mCamera.setPreviewCallbackWithBuffer(this);
-         
-         Parameters cp = mCamera.getParameters();
-         cp.setPictureFormat(ImageFormat.NV21);
-         mCamera.setParameters(cp);
-    }*/
     
     public void releasecam() {
     	if (mCamera != null) {
