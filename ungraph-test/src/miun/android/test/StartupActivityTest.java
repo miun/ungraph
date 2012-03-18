@@ -1,6 +1,7 @@
 package miun.android.test;
 
 import miun.android.test.mock.MockFileChooser;
+import miun.android.ungraph.help.HelpActivity;
 import miun.android.ungraph.preview.PreviewActivity;
 
 import miun.android.ungraph.process.GraphProcessingActivity;
@@ -40,7 +41,7 @@ public class StartupActivityTest extends
 		mActivity.finish();
 		super.tearDown();
 	}
-	/*
+	
 	//Test preconditions - e.g. the activity is not null
 	public void testPreconditions() {
 		assertNotNull(mActivity);
@@ -66,7 +67,7 @@ public class StartupActivityTest extends
 		mSolo.assertCurrentActivity("HelpActivity not Called", HelpActivity.class);
 		mSolo.goBack();
 	}
-	*/
+	
 	public void testReceiveResultCancelledFromFileChooser() {
 		Intent intent = new Intent();
 		intent.putExtra("simu", MockFileChooser.CANCELLED);
@@ -85,6 +86,7 @@ public class StartupActivityTest extends
 		mSolo.waitForActivity("MockFileChooser",1);
 		assertTrue(mSolo.searchText(mSolo.getString(miun.android.R.string.wrong_file_type)));
 		mSolo.clickOnText(mSolo.getString(android.R.string.ok));
+		mSolo.assertCurrentActivity("StartupActivity not active after cancel from filechooser", PreviewActivity.class);
 	}
 	
 	public void testReceivePictureFromFileChooser() {
